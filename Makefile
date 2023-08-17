@@ -30,6 +30,6 @@ install: build
 	install -d /usr/local/bin
 	install -C -b $(OUT_DIR)/$(BIN) /usr/local/bin
 	install -d /usr/local/include/lib6502
-	install -C -m 644 $(SRC_DIR)/*.h /usr/local/include/lib6502
+	install -C -m 644 include/*.h /usr/local/include/lib6502
 	install -d /usr/local/lib
 	install -C -b $(OUT_DIR)/$(LIB) /usr/local/lib
