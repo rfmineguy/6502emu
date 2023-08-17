@@ -62,6 +62,10 @@ void cpu_reg_store(register_e reg, addressing_mode_e addr_mode, cpu_t* cpu) {
   }
 }
 
+int cpu_load_program(const char* filename, cpu_t* cpu) {
+  
+}
+
 int cpu_step(cpu_t* cpu) {
   opcode_e opcode = cpu_fetch(cpu);
   printf("opcode: 0x%X\n", opcode);

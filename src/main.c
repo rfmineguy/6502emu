@@ -3,6 +3,9 @@
 
 int main(int argc, const char** argv) {
   cpu_t cpu;        // NOTE: Intentionally uninitialized
+
+  cpu_load_program()
+
   // Setup reset vector
   cpu.memory[0xFFFC] = 0x00;
   cpu.memory[0xFFFD] = 0x10;
