@@ -13,17 +13,14 @@ always:
 	mkdir -p $(OUT_DIR)
 clean:
 	rm -r $(OUT_DIR)
-build: always assemble_test $(OUT_DIR)/$(LIB) $(OUT_DIR)/$(BIN)
+build: always assemble_test $(OUT_DIR)/$(LIB)
 assemble_test: always $(OUT_DIR)/test
-
-$(OUT_DIR)/$(BIN): src/tui_main.c
-	gcc -o $@ $^ -L$(OUT_DIR) -lncurses -l6502emu
 
 $(OUT_DIR)/$(LIB): $(LIBOBJECTS)
 	ar rcs $@ $^
 
 $(OUT_DIR)/%.o: $(SRC_DIR)/%.c
-	gcc -c $^ -o $@
+	gcc -c $^ -o $@ -Iinclude/
 
 $(OUT_DIR)/test: $(TEST_DIR)/test.s
 	ca65 $^ -o $@.o -l $@.lst
