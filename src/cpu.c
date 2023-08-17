@@ -1,4 +1,4 @@
-#include "cpu.h"
+#include "6502emu/cpu.h"
 #include <stdio.h>
 #include <assert.h>
 
