@@ -1,6 +1,10 @@
 #ifndef CPU_H
 #define CPU_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 typedef enum {
@@ -92,5 +96,9 @@ void      cpu_reg_store(register_e, addressing_mode_e, cpu_t*);
 
 int       cpu_load_program(const char*, cpu_t*);
 int       cpu_step(cpu_t*);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
