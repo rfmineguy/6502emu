@@ -1,10 +1,8 @@
 #include <stdio.h>
-#include "cpu.h"
+#include "6502emu/cpu.h"
 
 int main(int argc, const char** argv) {
   cpu_t cpu;        // NOTE: Intentionally uninitialized
-
-  cpu_load_program()
 
   // Setup reset vector
   cpu.memory[0xFFFC] = 0x00;
@@ -24,7 +22,9 @@ int main(int argc, const char** argv) {
 
   cpu_reset(&cpu);
 
+
   do {
+    cpu_get_str_rep(cpu.pc, &cpu);
     cpu_dump(&cpu);
     printf("Press any button to step forward\n");
     fflush(stdin);

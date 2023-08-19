@@ -1,6 +1,9 @@
 #include "6502emu/cpu.h"
 #include <stdio.h>
 #include <assert.h>
+#include <inttypes.h>
+
+char* disassembled_instruction = NULL;
 
 uint8_t* cpu_util_get_reg_ptr(register_e reg, cpu_t* cpu) {
   switch (reg) {
@@ -25,7 +28,7 @@ void cpu_dump(cpu_t* cpu) {
   printf(" PC = $%X\n", cpu->pc);
 }
 
-opcode_e cpu_fetch(cpu_t* cpu) {
+uint8_t cpu_fetch(cpu_t* cpu) {
   return cpu->memory[cpu->pc];
 }
 
@@ -92,4 +95,83 @@ int cpu_step(cpu_t* cpu) {
       printf("Unimplemented opcode, %d", opcode);
       return 0;
   }
+}
+
+
+// bit pattern aaabbbcc
+//  aaa / cc -> opcode
+//  bbb      -> addr mode
+
+void cpu_get_str_rep(int index, cpu_t* cpu) {
+  uint8_t byte  = cpu_fetch(cpu);
+  uint8_t aaa   = byte >> 5;
+  uint8_t bbb   = ((byte & 0b00011100) >> 2);
+  uint8_t cc    = byte & 0b00000011;
+
+  printf("aaa    : %" PRIu8 "\n", aaa);
+  printf("bbb    : %" PRIu8 "\n", bbb);
+  printf("cc     : %" PRIu8 "\n", cc);
+
+  if (cc == 0b0000000) {
+    switch (aaa) {
+      case 0b00000001: printf("BIT\n"); break;
+      case 0b00000010: printf("JMP\n"); break;
+      case 0b00000011: printf("JMP (abs)\n"); break;
+      case 0b00000100: printf("STY\n"); break;
+      case 0b00000101: printf("LDY\n"); break;
+      case 0b00000110: printf("CPY\n"); break;
+      case 0b00000111: printf("CPX\n"); break;
+    }
+    switch (bbb) {
+      case 0b00000001: printf("#immediate\n"); break;
+      case 0b00000010: printf("zeropage\n"); break;
+      case 0b00000011: printf("absolute\n"); break;
+      case 0b00000101: printf("zeropage,X\n"); break;
+      case 0b00000111: printf("absolute,X\n"); break;
+    }
+  }
+  else if (cc == 0b00000001) {
+    switch (aaa) {
+      case 0b00000000: printf("ORA\n"); break;;
+      case 0b00000001: printf("AND\n"); break;
+      case 0b00000010: printf("EOR\n"); break;
+      case 0b00000011: printf("ADC\n"); break;
+      case 0b00000100: printf("STA\n"); break;
+      case 0b00000101: printf("LDA\n"); break;
+      case 0b00000110: printf("CMP\n"); break;
+      case 0b00000111: printf("SBC\n"); break;
+    }
+    switch (bbb) {
+      case 0b00000000: printf("(zeropage,X)\n"); break;
+      case 0b00000001: printf("zeropage    \n"); break;
+      case 0b00000010: printf("#immediate  \n"); break;
+      case 0b00000011: printf("absolute    \n"); break;
+      case 0b00000100: printf("(zeropage),Y\n"); break;
+      case 0b00000101: printf("zeropage, X \n"); break;
+      case 0b00000110: printf("absolute, Y \n"); break;
+      case 0b00000111: printf("absolute, X \n"); break;
+    }
+  }
+  else if (cc == 0b00000010) {
+    switch (aaa) {
+      case 0b00000000: printf("ASL\n");
+      case 0b00000001: printf("ROL\n"); break;
+      case 0b00000010: printf("LSR\n"); break;
+      case 0b00000011: printf("ROR\n"); break;
+      case 0b00000100: printf("STX\n"); break;
+      case 0b00000101: printf("LDX\n"); break;
+      case 0b00000110: printf("DEC\n"); break;
+      case 0b00000111: printf("INC\n"); break;
+    }
+    switch (bbb) {
+      case 0b00000000: printf("#immediate  \n"); break;
+      case 0b00000001: printf("zeropage    \n"); break;
+      case 0b00000010: printf("accumulator \n"); break;
+      case 0b00000011: printf("absolute    \n"); break;
+      case 0b00000101: printf("zeropage, X \n"); break;
+      case 0b00000111: printf("absolute, X \n"); break;
+    }
+  }
+
+  // https://llx.com/Neil/a2/opcodes.html
 }

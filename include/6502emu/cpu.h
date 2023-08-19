@@ -90,12 +90,14 @@ uint8_t*  cpu_util_get_reg_ptr(register_e, cpu_t*);
 
 void      cpu_reset(cpu_t*);
 void      cpu_dump(cpu_t*);
-opcode_e  cpu_fetch(cpu_t*);
+uint8_t   cpu_fetch(cpu_t*);
 void      cpu_reg_load(register_e, addressing_mode_e, cpu_t*);
 void      cpu_reg_store(register_e, addressing_mode_e, cpu_t*);
 
 int       cpu_load_program(const char*, cpu_t*);
 int       cpu_step(cpu_t*);
+
+void      cpu_get_str_rep(int, cpu_t*);
 
 #ifdef __cplusplus
 }
