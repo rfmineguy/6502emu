@@ -37,12 +37,19 @@ int main(int argc, char** argv) {
 
   char str_rep[255];
   int byte_size;
-  do {
-    cpu_get_str_rep(cpu.pc, &cpu, str_rep, 255, &byte_size);
-    printf("str_rep : %s\n", str_rep);
-    cpu_dump(&cpu);
-    printf("Press any button to step forward\n");
-    fflush(stdin);
-    getchar();
-  } while (cpu_step(&cpu));
+  for (int i = 0x8000; i < 0x8010;) {
+    cpu_get_str_rep(i, &cpu, str_rep, 255, &byte_size);
+    printf("%s\n", str_rep);
+    // printf("byte_size: %d\n", byte_size);
+    i += byte_size;
+  }
+  // do {
+  //   cpu_get_str_rep(cpu.pc, &cpu, str_rep, 255, &byte_size);
+  //   printf("str_rep   : %s\n", str_rep);
+  //   printf("byte_size : %d\n", byte_size);
+  //   // cpu_dump(&cpu);
+  //   printf("Press any button to step forward\n");
+  //   fflush(stdin);
+  //   getchar();
+  // } while (cpu_step(&cpu));
 }

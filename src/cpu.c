@@ -113,87 +113,139 @@ int cpu_step(cpu_t* cpu) {
 //  aaa / cc -> opcode
 //  bbb      -> addr mode
 
-
-void cpu_get_str_rep(int index, cpu_t* cpu, char* out_str_rep, int out_str_size, int* byte_size) {
-#define OUT_STR_CAT(str) strncat(out_str_rep, str, out_str_size)
-  uint8_t byte  = cpu_fetch(cpu);
+void cpu_get_str_rep(int index, cpu_t* cpu, char* out_str_rep, int out_str_size, int* out_byte_size) {
+#define OUT_STR_APPEND(fmt, ...) out_str_rep += snprintf(out_str_rep, out_str_size, fmt, ##__VA_ARGS__)
+  uint8_t byte  = cpu->memory[index];
   uint8_t aaa   = byte >> 5;
   uint8_t bbb   = ((byte & 0b00011100) >> 2);
   uint8_t cc    = byte & 0b00000011;
 
-  printf("byte   : 0x%02X\n", byte);
-  printf("aaa    : %" PRIu8 "\n", aaa);
-  printf("bbb    : %" PRIu8 "\n", bbb);
-  printf("cc     : %" PRIu8 "\n", cc);
-
   out_str_rep[0] = 0;
 
-  if (cc == 0b00000000) {
-    switch (aaa) {
-      case 0b00000001: OUT_STR_CAT("BIT "); break;
-      case 0b00000010: OUT_STR_CAT("JMP "); break;
-      case 0b00000011: OUT_STR_CAT("JMP "); break;
-      case 0b00000100: OUT_STR_CAT("STY "); break;
-      case 0b00000101: OUT_STR_CAT("LDY "); break;
-      case 0b00000110: OUT_STR_CAT("CPY "); break;
-      case 0b00000111: OUT_STR_CAT("CPX "); break;
-    }
-    *byte_size = 1; // each opcode is one byte
-    switch (bbb) {
-      case 0b00000000: OUT_STR_CAT("#immediate"); break;
-      case 0b00000001: OUT_STR_CAT("zeropage"); break;
-      case 0b00000011: OUT_STR_CAT("absolute"); break;
-      case 0b00000101: OUT_STR_CAT("zeropage,X"); break;
-      case 0b00000111: OUT_STR_CAT("absolute,X"); break;
-    }
-    return;         // we found the translation
+  // STY $00
+  // ORA $3224, X
+  const char* opcode_str = NULL;  // string rep of the opcode
+  int bytes = 0;                  // number of bytes for the opcode
+  
+  // branch instructions (potentially more complex than this)
+  switch (byte) {
+    case 0x10: OUT_STR_APPEND("%s", "BPL"); bytes += 1; break;
+    case 0x30: OUT_STR_APPEND("%s", "BMI"); bytes += 1; break;
+    case 0x50: OUT_STR_APPEND("%s", "BVC"); bytes += 1; break;
+    case 0x70: OUT_STR_APPEND("%s", "BVS"); bytes += 1; break;
+    case 0x90: OUT_STR_APPEND("%s", "BCC"); bytes += 1; break;
+    case 0xB0: OUT_STR_APPEND("%s", "BCS"); bytes += 1; break;
+    case 0xD0: OUT_STR_APPEND("%s", "BNE"); bytes += 1; break;
+    case 0xF0: OUT_STR_APPEND("%s", "BEQ"); bytes += 1; break;
   }
-  else if (cc == 0b00000001) {
-    switch (aaa) {
-      case 0b00000000: OUT_STR_CAT("ORA "); break;
-      case 0b00000001: OUT_STR_CAT("AND "); break;
-      case 0b00000010: OUT_STR_CAT("EOR "); break;
-      case 0b00000011: OUT_STR_CAT("ADC "); break;
-      case 0b00000100: OUT_STR_CAT("STA "); break;
-      case 0b00000101: OUT_STR_CAT("LDA "); break;
-      case 0b00000110: OUT_STR_CAT("CMP "); break;
-      case 0b00000111: OUT_STR_CAT("SBC "); break;
-    }
-    switch (bbb) {
-      case 0b00000000: OUT_STR_CAT("(zeropage,X)\n"); break;
-      case 0b00000001: OUT_STR_CAT("zeropage    \n"); break;
-      case 0b00000010: OUT_STR_CAT("#immediate  \n"); break;
-      case 0b00000011: OUT_STR_CAT("absolute    \n"); break;
-      case 0b00000100: OUT_STR_CAT("(zeropage),Y\n"); break;
-      case 0b00000101: OUT_STR_CAT("zeropage, X \n"); break;
-      case 0b00000110: OUT_STR_CAT("absolute, Y \n"); break;
-      case 0b00000111: OUT_STR_CAT("absolute, X \n"); break;
-    }
-    return;  // we found the translation
+  // JSR
+  switch (byte) {
+    case 0x20: OUT_STR_APPEND("%s $%02X%02X", "JSR", cpu->memory[index + 2], cpu->memory[index + 1]); bytes += 3; break; // absolute
   }
-  else if (cc == 0b00000010) {
+  // misc instructions
+  switch (byte) {
+    case 0x00: OUT_STR_APPEND("%s", "BRK"); bytes += 1; break;
+    case 0x40: OUT_STR_APPEND("%s", "RTI"); bytes += 1; break;
+    case 0x60: OUT_STR_APPEND("%s", "RTS"); bytes += 1; break;
+  }
+  // other single-byte instructions
+  switch (byte) {
+    case 0x08: OUT_STR_APPEND("%s", "PHP"); bytes += 1; break;
+    case 0x28: OUT_STR_APPEND("%s", "PLP"); bytes += 1; break;
+    case 0x48: OUT_STR_APPEND("%s", "PHA"); bytes += 1; break;
+    case 0x68: OUT_STR_APPEND("%s", "PLA"); bytes += 1; break;
+    case 0x88: OUT_STR_APPEND("%s", "DEY"); bytes += 1; break;
+    case 0xA8: OUT_STR_APPEND("%s", "TAY"); bytes += 1; break;
+    case 0xC8: OUT_STR_APPEND("%s", "INY"); bytes += 1; break;
+    case 0xE8: OUT_STR_APPEND("%s", "INX"); bytes += 1; break;
+  }
+  switch (byte) {
+    case 0x18: OUT_STR_APPEND("%s", "CLC"); bytes += 1; break;
+    case 0x38: OUT_STR_APPEND("%s", "SEC"); bytes += 1; break;
+    case 0x58: OUT_STR_APPEND("%s", "CLI"); bytes += 1; break;
+    case 0x78: OUT_STR_APPEND("%s", "SEI"); bytes += 1; break;
+    case 0x98: OUT_STR_APPEND("%s", "TYA"); bytes += 1; break;
+    case 0xB8: OUT_STR_APPEND("%s", "CLV"); bytes += 1; break;
+    case 0xD8: OUT_STR_APPEND("%s", "CLD"); bytes += 1; break;
+    case 0xF8: OUT_STR_APPEND("%s", "SED"); bytes += 1; break;
+  } 
+  switch (byte) {
+    case 0x8A: OUT_STR_APPEND("%s", "TXA"); bytes += 1; break;
+    case 0x9A: OUT_STR_APPEND("%s", "TXS"); bytes += 1; break;
+    case 0xAA: OUT_STR_APPEND("%s", "TAX"); bytes += 1; break;
+    case 0xBA: OUT_STR_APPEND("%s", "TSX"); bytes += 1; break;
+    case 0xCA: OUT_STR_APPEND("%s", "DEX"); bytes += 1; break;
+    case 0xEA: OUT_STR_APPEND("%s", "NOP"); bytes += 1; break;
+  }
+
+  // multibyte instructions (only if we didn't find a single byte instruction first)
+  if (bytes == 0 && cc == 0b00000000) {
+    switch (aaa) {
+      case 0b00000001: OUT_STR_APPEND("%s", "BIT "); break;
+      case 0b00000010: OUT_STR_APPEND("%s", "JMP "); break;
+      case 0b00000011: OUT_STR_APPEND("%s", "JMP "); break;
+      case 0b00000100: OUT_STR_APPEND("%s", "STY "); break;
+      case 0b00000101: OUT_STR_APPEND("%s", "LDY "); break;
+      case 0b00000110: OUT_STR_APPEND("%s", "CPY "); break;
+      case 0b00000111: OUT_STR_APPEND("%s", "CPX "); break;
+    }
+    bytes = 1; // each opcode is one byte
+    switch (bbb) {
+      case 0b00000000: OUT_STR_APPEND("#$%02X"      , cpu->memory[index + 1]);                           bytes += 1; break; // #immediate
+      case 0b00000001: OUT_STR_APPEND("$%02X"       , cpu->memory[index + 1]);                           bytes += 1; break; // zeropage
+      case 0b00000011: OUT_STR_APPEND("$%02X%02X"   , cpu->memory[index + 2], cpu->memory[index + 1]);   bytes += 2; break; // absolute
+      case 0b00000101: OUT_STR_APPEND("$%02X, X"    , cpu->memory[index + 1]);                           bytes += 1; break; // zeropage, X
+      case 0b00000111: OUT_STR_APPEND("$%02X%02X, X", cpu->memory[index + 2], cpu->memory[index + 1]);   bytes += 2; break; // absolute, X
+    }
+  }
+  else if (bytes == 0 && cc == 0b00000001) {
+    switch (aaa) {
+      case 0b00000000: OUT_STR_APPEND("%s", "ORA "); break;
+      case 0b00000001: OUT_STR_APPEND("%s", "AND "); break;
+      case 0b00000010: OUT_STR_APPEND("%s", "EOR "); break;
+      case 0b00000011: OUT_STR_APPEND("%s", "ADC "); break;
+      case 0b00000100: OUT_STR_APPEND("%s", "STA "); break;
+      case 0b00000101: OUT_STR_APPEND("%s", "LDA "); break;
+      case 0b00000110: OUT_STR_APPEND("%s", "CMP "); break;
+      case 0b00000111: OUT_STR_APPEND("%s", "SBC "); break;
+    }
+    bytes = 1;
+    switch (bbb) {
+      case 0b00000000: OUT_STR_APPEND("($%02X, X)"  , cpu->memory[index + 1]);                           bytes += 1; break; // (zeropage, X)
+      case 0b00000001: OUT_STR_APPEND("$%02X"       , cpu->memory[index + 1]);                           bytes += 1; break; // zeropage
+      case 0b00000010: OUT_STR_APPEND("#$%02X"      , cpu->memory[index + 1]);                           bytes += 1; break; // #immediate
+      case 0b00000011: OUT_STR_APPEND("$%02X%02X"   , cpu->memory[index + 2], cpu->memory[index + 1]);   bytes += 2; break; // absolute
+      case 0b00000100: OUT_STR_APPEND("($%02X), Y"  , cpu->memory[index + 1]);                           bytes += 2; break; // (zeropage, Y)
+      case 0b00000101: OUT_STR_APPEND("$%02X, X"    , cpu->memory[index + 1]);                           bytes += 1; break; // zeropage, X
+      case 0b00000110: OUT_STR_APPEND("$%02X%02X, Y", cpu->memory[index + 2], cpu->memory[index + 1]);   bytes += 2; break; // absolute, Y
+      case 0b00000111: OUT_STR_APPEND("$%02X%02X, X", cpu->memory[index + 2], cpu->memory[index + 1]);   bytes += 2; break; // absolute, X
+    }
+  }
+  // Group 2
+  else if (bytes == 0 && cc == 0b00000010) {
     printf("Opcode:   ");
     switch (aaa) {
-      case 0b00000000: OUT_STR_CAT("ASL "); break;
-      case 0b00000001: OUT_STR_CAT("ROL "); break;
-      case 0b00000010: OUT_STR_CAT("LSR "); break;
-      case 0b00000011: OUT_STR_CAT("ROR "); break;
-      case 0b00000100: OUT_STR_CAT("STX "); break;
-      case 0b00000101: OUT_STR_CAT("LDX "); break;
-      case 0b00000110: OUT_STR_CAT("DEC "); break;
-      case 0b00000111: OUT_STR_CAT("INC "); break;
+      case 0b00000000: OUT_STR_APPEND("%s", "ASL "); break;
+      case 0b00000001: OUT_STR_APPEND("%s", "ROL "); break;
+      case 0b00000010: OUT_STR_APPEND("%s", "LSR "); break;
+      case 0b00000011: OUT_STR_APPEND("%s", "ROR "); break;
+      case 0b00000100: OUT_STR_APPEND("%s", "STX "); break;
+      case 0b00000101: OUT_STR_APPEND("%s", "LDX "); break;
+      case 0b00000110: OUT_STR_APPEND("%s", "DEC "); break;
+      case 0b00000111: OUT_STR_APPEND("%s", "INC "); break;
     }
+    bytes = 1;
     printf("AddrMode: ");
     switch (bbb) {
-      case 0b00000000: OUT_STR_CAT("#immediate  \n"); break;
-      case 0b00000001: OUT_STR_CAT("zeropage    \n"); break;
-      case 0b00000010: OUT_STR_CAT("accumulator \n"); break;
-      case 0b00000011: OUT_STR_CAT("absolute    \n"); break;
-      case 0b00000101: OUT_STR_CAT("zeropage, X \n"); break;
-      case 0b00000111: OUT_STR_CAT("absolute, X \n"); break;
+      case 0b00000000:  OUT_STR_APPEND("#$%02X"      , cpu->memory[index + 1]);                         bytes += 1; break; // #immediate
+      case 0b00000001:  OUT_STR_APPEND("$%02X"       , cpu->memory[index + 1]);                         bytes += 1; break; // zeropage
+      case 0b00000010:  OUT_STR_APPEND("");                                                           bytes += 0; break; // accumulator
+      case 0b00000011:  OUT_STR_APPEND("$%02X%02X"   , cpu->memory[index + 2], cpu->memory[index + 1]); bytes += 2; break; // absolute
+      case 0b00000101:  OUT_STR_APPEND("$%02X, X"    , cpu->memory[index + 1]);                         bytes += 1; break; // zeropage, X
+      case 0b00000111:  OUT_STR_APPEND("$%02X%02X, X", cpu->memory[index + 2], cpu->memory[index + 1]); bytes += 2; break; // absolute, X
     };
     // we found the translation
   }
 
-  // https://llx.com/Neil/a2/opcodes.html
+  *out_byte_size = bytes;  // https://llx.com/Neil/a2/opcodes.html
 }

@@ -2,8 +2,12 @@
 
 .segment "CODE"
 vec_reset:
-  lda #$45
+  lda #45
   sta $00
+  ora $3245, X
+  inx
+loop:
+  jmp loop
 
 .segment "VECTORS"
 .word $0000         ;nmi?
