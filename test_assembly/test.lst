@@ -1,0 +1,16 @@
+ca65 V2.18 - N/A
+Main file   : test.s
+Current file: test.s
+
+000000r 1               .segment "ZEROPAGE"
+000000r 1               
+000000r 1               .segment "CODE"
+000000r 1               vec_reset:
+000000r 1  BD 12 43       lda $4312, X
+000003r 1  85 00          sta $00
+000005r 1               
+000005r 1               .segment "VECTORS"
+000000r 1  00 00        .word $0000         ;nmi?
+000002r 1  rr rr        .word vec_reset     ;reset vector
+000004r 1  00 00        .word $0000         ;irq?
+000004r 1               
