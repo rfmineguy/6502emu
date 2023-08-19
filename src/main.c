@@ -1,9 +1,20 @@
 #include <stdio.h>
 #include "6502emu/cpu.h"
+#include "6502emu/args.h"
 
-int main(int argc, const char** argv) {
+int main(int argc, char** argv) {
   cpu_t cpu;        // NOTE: Intentionally uninitialized
 
+  args_t args = args_parse(argc, argv);
+  if (!args.input_file) {
+    fprintf(stderr, "Must supply file\n");
+    return 0;
+  }
+  if (!cpu_load_program(args.input_file, &cpu)) {
+    fprintf(stderr, "File doesn't exist\n");
+    return 0;
+  }
+  /*
   // Setup reset vector
   cpu.memory[0xFFFC] = 0x00;
   cpu.memory[0xFFFD] = 0x10;
@@ -19,9 +30,9 @@ int main(int argc, const char** argv) {
   // lda $00
   cpu.memory[0x1004] = OP_LDA_ZP;
   cpu.memory[0x1005] = 0x00;
+  */
 
   cpu_reset(&cpu);
-
 
   do {
     cpu_get_str_rep(cpu.pc, &cpu);

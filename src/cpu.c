@@ -66,7 +66,17 @@ void cpu_reg_store(register_e reg, addressing_mode_e addr_mode, cpu_t* cpu) {
 }
 
 int cpu_load_program(const char* filename, cpu_t* cpu) {
-  
+  FILE* f = fopen(filename, "rb");
+  if (!f) {
+    fprintf(stderr, "Failed to open file '%s'\n", filename);
+    return 0;
+  }
+  fseek(f, 0, SEEK_END);
+  long size = ftell(f);
+  fseek(f, 0, SEEK_SET);
+  fread(cpu->memory, sizeof(uint8_t), size, f);
+  fclose(f);
+  return 1;
 }
 
 int cpu_step(cpu_t* cpu) {
@@ -108,6 +118,7 @@ void cpu_get_str_rep(int index, cpu_t* cpu) {
   uint8_t bbb   = ((byte & 0b00011100) >> 2);
   uint8_t cc    = byte & 0b00000011;
 
+  printf("byte   : %" PRIu8 "\n", byte);
   printf("aaa    : %" PRIu8 "\n", aaa);
   printf("bbb    : %" PRIu8 "\n", bbb);
   printf("cc     : %" PRIu8 "\n", cc);
