@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <inttypes.h>
+#include <string.h>
 
 char* disassembled_instruction = NULL;
 
@@ -112,76 +113,86 @@ int cpu_step(cpu_t* cpu) {
 //  aaa / cc -> opcode
 //  bbb      -> addr mode
 
-void cpu_get_str_rep(int index, cpu_t* cpu) {
+
+void cpu_get_str_rep(int index, cpu_t* cpu, char* out_str_rep, int out_str_size, int* byte_size) {
+#define OUT_STR_CAT(str) strncat(out_str_rep, str, out_str_size)
   uint8_t byte  = cpu_fetch(cpu);
   uint8_t aaa   = byte >> 5;
   uint8_t bbb   = ((byte & 0b00011100) >> 2);
   uint8_t cc    = byte & 0b00000011;
 
-  printf("byte   : %" PRIu8 "\n", byte);
+  printf("byte   : 0x%02X\n", byte);
   printf("aaa    : %" PRIu8 "\n", aaa);
   printf("bbb    : %" PRIu8 "\n", bbb);
   printf("cc     : %" PRIu8 "\n", cc);
 
-  if (cc == 0b0000000) {
+  out_str_rep[0] = 0;
+
+  if (cc == 0b00000000) {
     switch (aaa) {
-      case 0b00000001: printf("BIT\n"); break;
-      case 0b00000010: printf("JMP\n"); break;
-      case 0b00000011: printf("JMP (abs)\n"); break;
-      case 0b00000100: printf("STY\n"); break;
-      case 0b00000101: printf("LDY\n"); break;
-      case 0b00000110: printf("CPY\n"); break;
-      case 0b00000111: printf("CPX\n"); break;
+      case 0b00000001: OUT_STR_CAT("BIT "); break;
+      case 0b00000010: OUT_STR_CAT("JMP "); break;
+      case 0b00000011: OUT_STR_CAT("JMP "); break;
+      case 0b00000100: OUT_STR_CAT("STY "); break;
+      case 0b00000101: OUT_STR_CAT("LDY "); break;
+      case 0b00000110: OUT_STR_CAT("CPY "); break;
+      case 0b00000111: OUT_STR_CAT("CPX "); break;
     }
+    *byte_size = 1; // each opcode is one byte
     switch (bbb) {
-      case 0b00000001: printf("#immediate\n"); break;
-      case 0b00000010: printf("zeropage\n"); break;
-      case 0b00000011: printf("absolute\n"); break;
-      case 0b00000101: printf("zeropage,X\n"); break;
-      case 0b00000111: printf("absolute,X\n"); break;
+      case 0b00000000: OUT_STR_CAT("#immediate"); break;
+      case 0b00000001: OUT_STR_CAT("zeropage"); break;
+      case 0b00000011: OUT_STR_CAT("absolute"); break;
+      case 0b00000101: OUT_STR_CAT("zeropage,X"); break;
+      case 0b00000111: OUT_STR_CAT("absolute,X"); break;
     }
+    return;         // we found the translation
   }
   else if (cc == 0b00000001) {
     switch (aaa) {
-      case 0b00000000: printf("ORA\n"); break;;
-      case 0b00000001: printf("AND\n"); break;
-      case 0b00000010: printf("EOR\n"); break;
-      case 0b00000011: printf("ADC\n"); break;
-      case 0b00000100: printf("STA\n"); break;
-      case 0b00000101: printf("LDA\n"); break;
-      case 0b00000110: printf("CMP\n"); break;
-      case 0b00000111: printf("SBC\n"); break;
+      case 0b00000000: OUT_STR_CAT("ORA "); break;
+      case 0b00000001: OUT_STR_CAT("AND "); break;
+      case 0b00000010: OUT_STR_CAT("EOR "); break;
+      case 0b00000011: OUT_STR_CAT("ADC "); break;
+      case 0b00000100: OUT_STR_CAT("STA "); break;
+      case 0b00000101: OUT_STR_CAT("LDA "); break;
+      case 0b00000110: OUT_STR_CAT("CMP "); break;
+      case 0b00000111: OUT_STR_CAT("SBC "); break;
     }
     switch (bbb) {
-      case 0b00000000: printf("(zeropage,X)\n"); break;
-      case 0b00000001: printf("zeropage    \n"); break;
-      case 0b00000010: printf("#immediate  \n"); break;
-      case 0b00000011: printf("absolute    \n"); break;
-      case 0b00000100: printf("(zeropage),Y\n"); break;
-      case 0b00000101: printf("zeropage, X \n"); break;
-      case 0b00000110: printf("absolute, Y \n"); break;
-      case 0b00000111: printf("absolute, X \n"); break;
+      case 0b00000000: OUT_STR_CAT("(zeropage,X)\n"); break;
+      case 0b00000001: OUT_STR_CAT("zeropage    \n"); break;
+      case 0b00000010: OUT_STR_CAT("#immediate  \n"); break;
+      case 0b00000011: OUT_STR_CAT("absolute    \n"); break;
+      case 0b00000100: OUT_STR_CAT("(zeropage),Y\n"); break;
+      case 0b00000101: OUT_STR_CAT("zeropage, X \n"); break;
+      case 0b00000110: OUT_STR_CAT("absolute, Y \n"); break;
+      case 0b00000111: OUT_STR_CAT("absolute, X \n"); break;
     }
+    return;  // we found the translation
   }
   else if (cc == 0b00000010) {
+    printf("Opcode:   ");
     switch (aaa) {
-      case 0b00000000: printf("ASL\n");
-      case 0b00000001: printf("ROL\n"); break;
-      case 0b00000010: printf("LSR\n"); break;
-      case 0b00000011: printf("ROR\n"); break;
-      case 0b00000100: printf("STX\n"); break;
-      case 0b00000101: printf("LDX\n"); break;
-      case 0b00000110: printf("DEC\n"); break;
-      case 0b00000111: printf("INC\n"); break;
+      case 0b00000000: OUT_STR_CAT("ASL "); break;
+      case 0b00000001: OUT_STR_CAT("ROL "); break;
+      case 0b00000010: OUT_STR_CAT("LSR "); break;
+      case 0b00000011: OUT_STR_CAT("ROR "); break;
+      case 0b00000100: OUT_STR_CAT("STX "); break;
+      case 0b00000101: OUT_STR_CAT("LDX "); break;
+      case 0b00000110: OUT_STR_CAT("DEC "); break;
+      case 0b00000111: OUT_STR_CAT("INC "); break;
     }
+    printf("AddrMode: ");
     switch (bbb) {
-      case 0b00000000: printf("#immediate  \n"); break;
-      case 0b00000001: printf("zeropage    \n"); break;
-      case 0b00000010: printf("accumulator \n"); break;
-      case 0b00000011: printf("absolute    \n"); break;
-      case 0b00000101: printf("zeropage, X \n"); break;
-      case 0b00000111: printf("absolute, X \n"); break;
-    }
+      case 0b00000000: OUT_STR_CAT("#immediate  \n"); break;
+      case 0b00000001: OUT_STR_CAT("zeropage    \n"); break;
+      case 0b00000010: OUT_STR_CAT("accumulator \n"); break;
+      case 0b00000011: OUT_STR_CAT("absolute    \n"); break;
+      case 0b00000101: OUT_STR_CAT("zeropage, X \n"); break;
+      case 0b00000111: OUT_STR_CAT("absolute, X \n"); break;
+    };
+    // we found the translation
   }
 
   // https://llx.com/Neil/a2/opcodes.html

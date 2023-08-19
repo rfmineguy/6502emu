@@ -2,7 +2,7 @@
 
 .segment "CODE"
 vec_reset:
-  lda $4312, X
+  lda #$45
   sta $00
 
 .segment "VECTORS"

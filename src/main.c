@@ -14,6 +14,7 @@ int main(int argc, char** argv) {
     fprintf(stderr, "File doesn't exist\n");
     return 0;
   }
+
   /*
   // Setup reset vector
   cpu.memory[0xFFFC] = 0x00;
@@ -34,8 +35,11 @@ int main(int argc, char** argv) {
 
   cpu_reset(&cpu);
 
+  char str_rep[255];
+  int byte_size;
   do {
-    cpu_get_str_rep(cpu.pc, &cpu);
+    cpu_get_str_rep(cpu.pc, &cpu, str_rep, 255, &byte_size);
+    printf("str_rep : %s\n", str_rep);
     cpu_dump(&cpu);
     printf("Press any button to step forward\n");
     fflush(stdin);
