@@ -38,10 +38,15 @@ int main(int argc, char** argv) {
   char str_rep[255];
   int byte_size;
   for (int i = 0x8000; i < 0x8010;) {
-    cpu_get_str_rep(i, &cpu, str_rep, 255, &byte_size);
-    printf("%s\n", str_rep);
-    // printf("byte_size: %d\n", byte_size);
-    i += byte_size;
+    if (cpu_get_str_rep(i, &cpu, str_rep, 255, &byte_size)) {
+      printf("%02X%02X   %s\n", (i >> 8) & 0xFF, i & 0xFF, str_rep);
+      i += byte_size;
+      continue;
+    }
+    else {
+      printf("%02X%02X   invalid\n", (i >> 8) & 0xFF, i & 0xFF);
+      i++;
+    }
   }
   // do {
   //   cpu_get_str_rep(cpu.pc, &cpu, str_rep, 255, &byte_size);
