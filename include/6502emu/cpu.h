@@ -77,6 +77,18 @@ typedef enum {
   REG_Y
 } register_e;
 
+//instruction_t
+typedef struct {
+  char      str[50];
+  uint8_t   raw[3];
+  uint16_t  address;
+  uint8_t   bytes;
+  int       valid; // not used as of now
+  
+  int       is_bp;
+} instruction_t;
+
+//cpu_t
 typedef struct {
   uint8_t  memory[0xffff];
   uint8_t  status_flags;
@@ -86,18 +98,19 @@ typedef struct {
   uint32_t cycles;
 } cpu_t;
 
-uint8_t*  cpu_util_get_reg_ptr(register_e, cpu_t*);
+uint8_t*      cpu_util_get_reg_ptr(register_e, cpu_t*);
 
-void      cpu_reset(cpu_t*);
-void      cpu_dump(cpu_t*);
-uint8_t   cpu_fetch(cpu_t*);
-void      cpu_reg_load(register_e, addressing_mode_e, cpu_t*);
-void      cpu_reg_store(register_e, addressing_mode_e, cpu_t*);
+void          cpu_reset(cpu_t*);
+void          cpu_dump(cpu_t*);
+uint8_t       cpu_fetch(cpu_t*);
+void          cpu_reg_load(register_e, addressing_mode_e, cpu_t*);
+void          cpu_reg_store(register_e, addressing_mode_e, cpu_t*);
 
-int       cpu_load_program(const char*, cpu_t*);
-int       cpu_step(cpu_t*);
+int           cpu_load_program(const char*, cpu_t*);
+int           cpu_step(cpu_t*);
 
-int       cpu_get_str_rep(int, cpu_t*, char*, int, int*);
+instruction_t cpu_get_instruction(int, cpu_t*);
+int           cpu_get_str_rep(int, cpu_t*, char*, int, int*);
 
 #ifdef __cplusplus
 }

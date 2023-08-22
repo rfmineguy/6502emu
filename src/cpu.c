@@ -113,6 +113,137 @@ int cpu_step(cpu_t* cpu) {
 //  aaa / cc -> opcode
 //  bbb      -> addr mode
 
+instruction_t cpu_get_instruction(int index, cpu_t* cpu) {
+#define STR_APPEND(str, fmt, ...) str += snprintf(str, 50, fmt, ##__VA_ARGS__)
+
+  instruction_t ins = {0};
+  ins.address = index;
+
+  uint8_t byte  = cpu->memory[index];
+  uint8_t aaa   = byte >> 5;
+  uint8_t bbb   = ((byte & 0b00011100) >> 2);
+  uint8_t cc    = byte & 0b00000011;
+
+  char* str_rep = ins.str;
+  switch (byte) {
+    case 0x20: STR_APPEND(str_rep, "%s", "JSR"); ins.bytes = 3; break;
+
+    case 0x10: STR_APPEND(str_rep, "%s", "BPL"); ins.bytes = 1; break;
+    case 0x30: STR_APPEND(str_rep, "%s", "BMI"); ins.bytes = 1; break;
+    case 0x50: STR_APPEND(str_rep, "%s", "BVC"); ins.bytes = 1; break;
+    case 0x70: STR_APPEND(str_rep, "%s", "BVS"); ins.bytes = 1; break;
+    case 0x90: STR_APPEND(str_rep, "%s", "BCC"); ins.bytes = 1; break;
+    case 0xB0: STR_APPEND(str_rep, "%s", "BCS"); ins.bytes = 1; break;
+    case 0xD0: STR_APPEND(str_rep, "%s", "BNE"); ins.bytes = 1; break;
+    case 0xF0: STR_APPEND(str_rep, "%s", "BEQ"); ins.bytes = 1; break;
+
+    case 0x00: STR_APPEND(str_rep, "%s", "BRK"); ins.bytes = 1; break;
+    case 0x40: STR_APPEND(str_rep, "%s", "RTI"); ins.bytes = 1; break;
+    case 0x60: STR_APPEND(str_rep, "%s", "RTS"); ins.bytes = 1; break;
+
+    case 0x08: STR_APPEND(str_rep, "%s", "PHP"); ins.bytes = 1; break;
+    case 0x28: STR_APPEND(str_rep, "%s", "PLP"); ins.bytes = 1; break;
+    case 0x48: STR_APPEND(str_rep, "%s", "PHA"); ins.bytes = 1; break;
+    case 0x68: STR_APPEND(str_rep, "%s", "PLA"); ins.bytes = 1; break;
+    case 0x88: STR_APPEND(str_rep, "%s", "DEY"); ins.bytes = 1; break;
+    case 0xA8: STR_APPEND(str_rep, "%s", "TAY"); ins.bytes = 1; break;
+    case 0xC8: STR_APPEND(str_rep, "%s", "INY"); ins.bytes = 1; break;
+    case 0xE8: STR_APPEND(str_rep, "%s", "INX"); ins.bytes = 1; break;
+
+    case 0x18: STR_APPEND(str_rep, "%s", "CLC"); ins.bytes = 1; break;
+    case 0x38: STR_APPEND(str_rep, "%s", "SEC"); ins.bytes = 1; break;
+    case 0x58: STR_APPEND(str_rep, "%s", "CLI"); ins.bytes = 1; break;
+    case 0x78: STR_APPEND(str_rep, "%s", "SEI"); ins.bytes = 1; break;
+    case 0x98: STR_APPEND(str_rep, "%s", "TYA"); ins.bytes = 1; break;
+    case 0xB8: STR_APPEND(str_rep, "%s", "CLV"); ins.bytes = 1; break;
+    case 0xD8: STR_APPEND(str_rep, "%s", "CLD"); ins.bytes = 1; break;
+    case 0xF8: STR_APPEND(str_rep, "%s", "SED"); ins.bytes = 1; break;
+
+    case 0x8A: STR_APPEND(str_rep, "%s", "TXA"); ins.bytes = 1; break;
+    case 0x9A: STR_APPEND(str_rep, "%s", "TXS"); ins.bytes = 1; break;
+    case 0xAA: STR_APPEND(str_rep, "%s", "TAX"); ins.bytes = 1; break;
+    case 0xBA: STR_APPEND(str_rep, "%s", "TSX"); ins.bytes = 1; break;
+    case 0xCA: STR_APPEND(str_rep, "%s", "DEX"); ins.bytes = 1; break;
+    case 0xEA: STR_APPEND(str_rep, "%s", "NOP"); ins.bytes = 1; break;
+  }
+
+  // multibyte instructions (only if we didn't find a single byte instruction first)
+  if (ins.bytes == 0 && cc == 0b00000000) {
+    switch (aaa) {
+      case 0b00000001: STR_APPEND(str_rep, "%s", "BIT "); ins.bytes += 1; break;
+      case 0b00000010: STR_APPEND(str_rep, "%s", "JMP "); ins.bytes += 1; break;
+      case 0b00000011: STR_APPEND(str_rep, "%s", "JMP "); ins.bytes += 1; break;
+      case 0b00000100: STR_APPEND(str_rep, "%s", "STY "); ins.bytes += 1; break;
+      case 0b00000101: STR_APPEND(str_rep, "%s", "LDY "); ins.bytes += 1; break;
+      case 0b00000110: STR_APPEND(str_rep, "%s", "CPY "); ins.bytes += 1; break;
+      case 0b00000111: STR_APPEND(str_rep, "%s", "CPX "); ins.bytes += 1; break;
+    }
+    switch (bbb) {
+      case 0b00000000: STR_APPEND(str_rep, "#$%02X"      , cpu->memory[index + 1]);                         ins.bytes += 1; break; // #immediate
+      case 0b00000001: STR_APPEND(str_rep, "$%02X"       , cpu->memory[index + 1]);                         ins.bytes += 1; break; // zeropage
+      case 0b00000011: STR_APPEND(str_rep, "$%02X%02X"   , cpu->memory[index + 2], cpu->memory[index + 1]); ins.bytes += 2; break; // absolute
+      case 0b00000101: STR_APPEND(str_rep, "$%02X, X"    , cpu->memory[index + 1]);                         ins.bytes += 1; break; // zeropage, X
+      case 0b00000111: STR_APPEND(str_rep, "$%02X%02X, X", cpu->memory[index + 2], cpu->memory[index + 1]); ins.bytes += 2; break; // absolute, X
+      
+      default: break;
+    }
+  }
+  else if (ins.bytes == 0 && cc == 0b00000001) {
+    switch (aaa) {
+      case 0b00000000: STR_APPEND(str_rep, "%s", "ORA "); ins.bytes += 1; break;
+      case 0b00000001: STR_APPEND(str_rep, "%s", "AND "); ins.bytes += 1; break;
+      case 0b00000010: STR_APPEND(str_rep, "%s", "EOR "); ins.bytes += 1; break;
+      case 0b00000011: STR_APPEND(str_rep, "%s", "ADC "); ins.bytes += 1; break;
+      case 0b00000100: STR_APPEND(str_rep, "%s", "STA "); ins.bytes += 1; break;
+      case 0b00000101: STR_APPEND(str_rep, "%s", "LDA "); ins.bytes += 1; break;
+      case 0b00000110: STR_APPEND(str_rep, "%s", "CMP "); ins.bytes += 1; break;
+      case 0b00000111: STR_APPEND(str_rep, "%s", "SBC "); ins.bytes += 1; break;
+
+      default: break;
+    }
+    switch (bbb) {
+      case 0b00000000: STR_APPEND(str_rep, "($%02X, X)"  , cpu->memory[index + 1]);                           ins.bytes += 1; break; // (zeropage, X)
+      case 0b00000001: STR_APPEND(str_rep, "$%02X"       , cpu->memory[index + 1]);                           ins.bytes += 1; break; // zeropage
+      case 0b00000010: STR_APPEND(str_rep, "#$%02X"      , cpu->memory[index + 1]);                           ins.bytes += 1; break; // #immediate
+      case 0b00000011: STR_APPEND(str_rep, "$%02X%02X"   , cpu->memory[index + 2], cpu->memory[index + 1]);   ins.bytes += 2; break; // absolute
+      case 0b00000100: STR_APPEND(str_rep, "($%02X), Y"  , cpu->memory[index + 1]);                           ins.bytes += 2; break; // (zeropage, Y)
+      case 0b00000101: STR_APPEND(str_rep, "$%02X, X"    , cpu->memory[index + 1]);                           ins.bytes += 1; break; // zeropage, X
+      case 0b00000110: STR_APPEND(str_rep, "$%02X%02X, Y", cpu->memory[index + 2], cpu->memory[index + 1]);   ins.bytes += 2; break; // absolute, Y
+      case 0b00000111: STR_APPEND(str_rep, "$%02X%02X, X", cpu->memory[index + 2], cpu->memory[index + 1]);   ins.bytes += 2; break; // absolute, X
+      
+      default: break;
+    }
+  }
+  // Group 2
+  else if (ins.bytes == 0 && cc == 0b00000010) {
+    switch (aaa) {
+      case 0b00000000: STR_APPEND(str_rep, "%s", "ASL "); break;
+      case 0b00000001: STR_APPEND(str_rep, "%s", "ROL "); break;
+      case 0b00000010: STR_APPEND(str_rep, "%s", "LSR "); break;
+      case 0b00000011: STR_APPEND(str_rep, "%s", "ROR "); break;
+      case 0b00000100: STR_APPEND(str_rep, "%s", "STX "); break;
+      case 0b00000101: STR_APPEND(str_rep, "%s", "LDX "); break;
+      case 0b00000110: STR_APPEND(str_rep, "%s", "DEC "); break;
+      case 0b00000111: STR_APPEND(str_rep, "%s", "INC "); break;
+
+      default: break;
+    }
+    switch (bbb) {
+      case 0b00000000: STR_APPEND(str_rep, "#$%02X"      , cpu->memory[index + 1]);                         ins.bytes += 1; break; // #immediate
+      case 0b00000001: STR_APPEND(str_rep, "$%02X"       , cpu->memory[index + 1]);                         ins.bytes += 1; break; // zeropage
+      case 0b00000010: STR_APPEND(str_rep, "");                                                             ins.bytes += 0; break; // accumulator
+      case 0b00000011: STR_APPEND(str_rep, "$%02X%02X"   , cpu->memory[index + 2], cpu->memory[index + 1]); ins.bytes += 2; break; // absolute
+      case 0b00000101: STR_APPEND(str_rep, "$%02X, X"    , cpu->memory[index + 1]);                         ins.bytes += 1; break; // zeropage, X
+      case 0b00000111: STR_APPEND(str_rep, "$%02X%02X, X", cpu->memory[index + 2], cpu->memory[index + 1]); ins.bytes += 2; break; // absolute, X
+      
+      default: break;
+    };
+    // we found the translation
+  }
+  ins.valid = ins.bytes > 0;
+  return ins;
+}
+
 int cpu_get_str_rep(int index, cpu_t* cpu, char* out_str_rep, int out_str_size, int* out_byte_size) {
 #define OUT_STR_APPEND(fmt, ...) out_str_rep += snprintf(out_str_rep, out_str_size, fmt, ##__VA_ARGS__)
   uint8_t byte  = cpu->memory[index];

@@ -34,20 +34,31 @@ int main(int argc, char** argv) {
   */
 
   cpu_reset(&cpu);
+  printf("CPU RESET\n");
 
-  char str_rep[255];
-  int byte_size;
   for (int i = 0x8000; i < 0x8010;) {
-    if (cpu_get_str_rep(i, &cpu, str_rep, 255, &byte_size)) {
-      printf("%02X%02X   %s\n", (i >> 8) & 0xFF, i & 0xFF, str_rep);
-      i += byte_size;
-      continue;
-    }
-    else {
-      printf("%02X%02X   invalid\n", (i >> 8) & 0xFF, i & 0xFF);
-      i++;
-    }
+    instruction_t ins = cpu_get_instruction(i, &cpu);
+    printf("str:     %s\n", ins.str);
+    printf("raw:     %02X%02X%02X\n", ins.raw[0], ins.raw[1], ins.raw[2]);
+    printf("bytes:   %d\n", ins.bytes);
+    printf("address: %02X%02X\n", (ins.address >> 8) & 0xFF, ins.address & 0xFF);
+    printf("valid:   %d\n", ins.valid);
+    printf("is_bp:   %d\n", ins.is_bp);
+    i += ins.bytes;
   }
+  // char str_rep[255];
+  // int byte_size;
+  // for (int i = 0x8000; i < 0x8010;) {
+  //   if (cpu_get_str_rep(i, &cpu, str_rep, 255, &byte_size)) {
+  //     printf("%02X%02X   %s\n", (i >> 8) & 0xFF, i & 0xFF, str_rep);
+  //     i += byte_size;
+  //     continue;
+  //   }
+  //   else {
+  //     printf("%02X%02X   invalid\n", (i >> 8) & 0xFF, i & 0xFF);
+  //     i++;
+  //   }
+  // }
   // do {
   //   cpu_get_str_rep(cpu.pc, &cpu, str_rep, 255, &byte_size);
   //   printf("str_rep   : %s\n", str_rep);
