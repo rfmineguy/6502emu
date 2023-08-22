@@ -127,8 +127,6 @@ int cpu_get_str_rep(int index, cpu_t* cpu, char* out_str_rep, int out_str_size, 
   const char* opcode_str = NULL;  // string rep of the opcode
   int bytes = 0;                  // number of bytes for the opcode
 
-  int is_valid = 1;
-
   // single-byte instructions
   switch (byte) {
     case 0x20: OUT_STR_APPEND("%s $%02X%02X", "JSR", cpu->memory[index + 2], cpu->memory[index + 1]); bytes += 3; break; // absolute
@@ -185,7 +183,7 @@ int cpu_get_str_rep(int index, cpu_t* cpu, char* out_str_rep, int out_str_size, 
       case 0b00000110: OUT_STR_APPEND("%s", "CPY "); break;
       case 0b00000111: OUT_STR_APPEND("%s", "CPX "); break;
 
-      default: is_valid = 0;
+      default: break;
     }
     bytes = 1; // each opcode is one byte
     switch (bbb) {
@@ -195,7 +193,7 @@ int cpu_get_str_rep(int index, cpu_t* cpu, char* out_str_rep, int out_str_size, 
       case 0b00000101: OUT_STR_APPEND("$%02X, X"    , cpu->memory[index + 1]);                           bytes += 1; break; // zeropage, X
       case 0b00000111: OUT_STR_APPEND("$%02X%02X, X", cpu->memory[index + 2], cpu->memory[index + 1]);   bytes += 2; break; // absolute, X
       
-      default: is_valid = 0;
+      default: break;
     }
   }
   else if (bytes == 0 && cc == 0b00000001) {
@@ -209,7 +207,7 @@ int cpu_get_str_rep(int index, cpu_t* cpu, char* out_str_rep, int out_str_size, 
       case 0b00000110: OUT_STR_APPEND("%s", "CMP "); break;
       case 0b00000111: OUT_STR_APPEND("%s", "SBC "); break;
 
-      default: is_valid = 0;
+      default: break;
     }
     bytes = 1;
     switch (bbb) {
@@ -222,7 +220,7 @@ int cpu_get_str_rep(int index, cpu_t* cpu, char* out_str_rep, int out_str_size, 
       case 0b00000110: OUT_STR_APPEND("$%02X%02X, Y", cpu->memory[index + 2], cpu->memory[index + 1]);   bytes += 2; break; // absolute, Y
       case 0b00000111: OUT_STR_APPEND("$%02X%02X, X", cpu->memory[index + 2], cpu->memory[index + 1]);   bytes += 2; break; // absolute, X
       
-      default: is_valid = 0;
+      default: break;
     }
   }
   // Group 2
@@ -237,7 +235,7 @@ int cpu_get_str_rep(int index, cpu_t* cpu, char* out_str_rep, int out_str_size, 
       case 0b00000110: OUT_STR_APPEND("%s", "DEC "); break;
       case 0b00000111: OUT_STR_APPEND("%s", "INC "); break;
 
-      default: is_valid = 0;
+      default: break;
     }
     bytes = 1;
     switch (bbb) {
@@ -248,11 +246,11 @@ int cpu_get_str_rep(int index, cpu_t* cpu, char* out_str_rep, int out_str_size, 
       case 0b00000101:  OUT_STR_APPEND("$%02X, X"    , cpu->memory[index + 1]);                         bytes += 1; break; // zeropage, X
       case 0b00000111:  OUT_STR_APPEND("$%02X%02X, X", cpu->memory[index + 2], cpu->memory[index + 1]); bytes += 2; break; // absolute, X
       
-      default: is_valid = 0;
+      default: break;
     };
     // we found the translation
   }
 
   *out_byte_size = bytes;  // https://llx.com/Neil/a2/opcodes.html
-  return is_valid;
+  return bytes != 0;
 }
