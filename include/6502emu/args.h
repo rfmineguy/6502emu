@@ -7,6 +7,7 @@ extern "C" {
 
 typedef struct {
   const char* input_file;
+  const char* dbg_file; // --dbgfile <file>
 } args_t; 
 
 args_t args_parse(int argc, char** argv);

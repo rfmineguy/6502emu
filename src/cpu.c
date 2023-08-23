@@ -124,6 +124,7 @@ instruction_t cpu_get_instruction(int index, cpu_t* cpu) {
   uint8_t bbb   = ((byte & 0b00011100) >> 2);
   uint8_t cc    = byte & 0b00000011;
 
+  ins.str[0]    = 0;
   char* str_rep = ins.str;
   switch (byte) {
     case 0x20: STR_APPEND(str_rep, "%s", "JSR"); ins.bytes = 3; break;
