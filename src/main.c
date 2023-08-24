@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include "6502emu/cpu.h"
-#include "6502emu/dbg_parse.h"
+#include "6502emu/dbginfo.h"
 #include "6502emu/args.h"
+
+void cc65_err_callback(const cc65_parseerror* err) {
+  printf("cc65_read_dbginfo error\n");
+}
 
 int main(int argc, char** argv) {
   cpu_t cpu;        // NOTE: Intentionally uninitialized
@@ -21,7 +25,14 @@ int main(int argc, char** argv) {
   }
 
   printf("Parsing dbg file\n");
-  dbg_file_t dbg = dbg_parse(args.dbg_file);
+  cc65_dbginfo dbg = cc65_read_dbginfo(args.dbg_file, &cc65_err_callback);
+
+  const cc65_segmentinfo* segments = cc65_get_segmentlist(dbg);
+  for (int i = 0; i < segments->count; i++) {
+    printf("segment #%d: { name: %s, start: %d, size: %d }\n", i, segments->data[i].segment_name, segments->data[i].segment_start, segments->data[i].segment_size);
+  }
+
+  cc65_free_dbginfo(dbg);
   return 0;
 
   /*
