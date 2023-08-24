@@ -4,7 +4,11 @@
 #include "6502emu/args.h"
 
 void cc65_err_callback(const cc65_parseerror* err) {
-  printf("cc65_read_dbginfo error\n");
+  fprintf(stderr, "cc65_read_dbginfo error\n");
+  fprintf(stderr, "  severity: %d\n", err->type);
+  fprintf(stderr, "  file    : %s\n", err->name);
+  fprintf(stderr, "  line    : %d\n", err->line);
+  fprintf(stderr, "  msg     : %s\n", err->errormsg);
 }
 
 int main(int argc, char** argv) {

@@ -5,7 +5,7 @@ project(6502test LANGUAGES C)
 set(CMAKE_BUILD_TYPE Debug)
 
 set(INCLUDE_DIR include/)
-set(SOURCES src/cpu.c src/args.c src/dbg_parse.c src/dbginfo.c)
+set(SOURCES src/cpu.c src/args.c src/dbginfo.c)
 
 add_library(6502lib ${SOURCES})
 target_include_directories(6502lib PRIVATE include/)
