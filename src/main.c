@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "6502emu/cpu.h"
+#include "6502emu/dbg_parse.h"
 #include "6502emu/args.h"
 
 int main(int argc, char** argv) {
@@ -10,10 +11,18 @@ int main(int argc, char** argv) {
     fprintf(stderr, "Must supply file\n");
     return 0;
   }
+  if (!args.dbg_file) {
+    fprintf(stderr, "Must provide a debug file\n");
+    return 0;
+  }
   if (!cpu_load_program(args.input_file, &cpu)) {
     fprintf(stderr, "File doesn't exist\n");
     return 0;
   }
+
+  printf("Parsing dbg file\n");
+  dbg_file_t dbg = dbg_parse(args.dbg_file);
+  return 0;
 
   /*
   // Setup reset vector
