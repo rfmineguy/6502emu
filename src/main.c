@@ -36,6 +36,36 @@ int main(int argc, char** argv) {
     printf("segment #%d: { name: %s, start: %d, size: %d }\n", i, segments->data[i].segment_name, segments->data[i].segment_start, segments->data[i].segment_size);
   }
 
+  // =============================================================================
+  //  Figuring out which instructions lie in the range of the segments
+  //    and which algorithm is quicker
+  //  1. The first algorithm is  O(n*m) n = 0xffff, m = segs
+  //  2. The second algorithm is ?   Much faster
+  // =============================================================================
+  int iterations = 0;
+  for (int i = 0; i < 0xffff; i++) {
+    instruction_t ins = cpu_get_instruction(i, &cpu);
+    for (int j = 0; j < segments->count; j++) {
+      iterations ++;
+      if (cpu_is_instruction_in_range(ins, segments->data[j].segment_start, segments->data[j].segment_start + segments->data[j].segment_size)) {
+        printf("%d is in range of segment %s\n", i, segments->data[j].segment_name);
+        break; // optimizes inner loop
+      }
+    }
+  }
+  printf("Iterations: %d\n", iterations);
+  iterations = 0;
+  // OR
+  for (int i = 0; i < segments->count; i++) {
+    int start = segments->data[i].segment_start;
+    int size  = segments->data[i].segment_size;
+    for (int j = start; j < start + size; j++) {
+      iterations ++;
+      printf("%d is in range of segment %s\n", j, segments->data[i].segment_name);
+    }
+  }
+  printf("Iterations: %d\n", iterations);
+
   cc65_free_dbginfo(dbg);
   return 0;
 

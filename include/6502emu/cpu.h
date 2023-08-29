@@ -109,8 +109,10 @@ void          cpu_reg_store(register_e, addressing_mode_e, cpu_t*);
 int           cpu_load_program(const char*, cpu_t*);
 int           cpu_step(cpu_t*);
 
-instruction_t cpu_get_instruction(int, cpu_t*);
+instruction_t cpu_get_instruction(int, const cpu_t*);
 int           cpu_get_str_rep(int, cpu_t*, char*, int, int*);
+
+int           cpu_is_instruction_in_range(instruction_t, int, int);
 
 #ifdef __cplusplus
 }

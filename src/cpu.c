@@ -113,7 +113,7 @@ int cpu_step(cpu_t* cpu) {
 //  aaa / cc -> opcode
 //  bbb      -> addr mode
 
-instruction_t cpu_get_instruction(int index, cpu_t* cpu) {
+instruction_t cpu_get_instruction(int index, const cpu_t* cpu) {
 #define STR_APPEND(str, fmt, ...) str += snprintf(str, 50, fmt, ##__VA_ARGS__)
 
   instruction_t ins = {0};
@@ -385,4 +385,8 @@ int cpu_get_str_rep(int index, cpu_t* cpu, char* out_str_rep, int out_str_size, 
 
   *out_byte_size = bytes;  // https://llx.com/Neil/a2/opcodes.html
   return bytes != 0;
+}
+
+int cpu_is_instruction_in_range(instruction_t ins, int lower_addr, int upper_addr) {
+  return ins.address > lower_addr && ins.address < upper_addr;
 }
