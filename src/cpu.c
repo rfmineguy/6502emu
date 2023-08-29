@@ -81,31 +81,8 @@ int cpu_load_program(const char* filename, cpu_t* cpu) {
 }
 
 int cpu_step(cpu_t* cpu) {
-  opcode_e opcode = cpu_fetch(cpu);
-  printf("opcode: 0x%X\n", opcode);
-  switch (opcode) {
-    case OP_EMU_EXIT:   return 0;
-
-    case OP_STA_ZP:     cpu_reg_store(REG_A, AM_ZP       , cpu); return 1;
-    case OP_STA_ZP_X:   cpu_reg_store(REG_A, AM_ZP_X     , cpu); return 1;
-    case OP_STA_ABS:    cpu_reg_store(REG_A, AM_ABS      , cpu); return 1;
-    case OP_STA_ABS_X:  cpu_reg_store(REG_A, AM_ABS_X    , cpu); return 1;
-    case OP_STA_ABS_Y:  cpu_reg_store(REG_A, AM_ABS_Y    , cpu); return 1;
-    case OP_STA_IND_X:  cpu_reg_store(REG_A, AM_IND_X    , cpu); return 1;
-    case OP_STA_IND_Y:  cpu_reg_store(REG_A, AM_IND_Y    , cpu); return 1;
-
-    case OP_LDA_IMM:    cpu_reg_load(REG_A, AM_IMMEDIATE, cpu); return 1;
-    case OP_LDA_ZP:     cpu_reg_load(REG_A, AM_ZP       , cpu); return 1;
-    case OP_LDA_ZP_X:   cpu_reg_load(REG_A, AM_ZP_X     , cpu); return 1;
-    case OP_LDA_ABS:    cpu_reg_load(REG_A, AM_ABS      , cpu); return 1;
-    case OP_LDA_ABS_X:  cpu_reg_load(REG_A, AM_ABS_X    , cpu); return 1;
-    case OP_LDA_ABS_Y:  cpu_reg_load(REG_A, AM_ABS_Y    , cpu); return 1;
-    case OP_LDA_IND_X:  cpu_reg_load(REG_A, AM_IND_X    , cpu); return 1;
-    case OP_LDA_IND_Y:  cpu_reg_load(REG_A, AM_IND_Y    , cpu); return 1;
-    default:
-      printf("Unimplemented opcode, %d", opcode);
-      return 0;
-  }
+  instruction_t ins = cpu_get_instruction(cpu->pc, cpu);
+  cpu->pc += ins.bytes;
 }
 
 
