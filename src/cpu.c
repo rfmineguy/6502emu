@@ -77,6 +77,7 @@ int cpu_load_program(const char* filename, cpu_t* cpu) {
   fseek(f, 0, SEEK_SET);
   fread(cpu->memory, sizeof(uint8_t), size, f);
   fclose(f);
+  cpu->loaded = 1;
   return 1;
 }
 

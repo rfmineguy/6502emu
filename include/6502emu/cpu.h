@@ -96,6 +96,8 @@ typedef struct {
   uint8_t  sp;
   uint16_t pc;
   uint32_t cycles;
+
+  uint8_t  loaded;
 } cpu_t;
 
 uint8_t*      cpu_util_get_reg_ptr(register_e, cpu_t*);
