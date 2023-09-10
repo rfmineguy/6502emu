@@ -121,9 +121,9 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
                 break; // INS_DEY
   case INS_EOR: assert(0 && "Not implemented"); break;
   case INS_INC: cpu_inc_mem(cpu, ins); break;
-  case INS_INX: cpu->regY++;
-                cpu->regY == 0 ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
-                cpu->regY  < 0 ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
+  case INS_INX: cpu->regX++;
+                cpu->regX == 0 ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
+                cpu->regX  < 0 ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
                 break; // INC_INX
   case INS_INY: cpu->regY++;
                 cpu->regY == 0 ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
