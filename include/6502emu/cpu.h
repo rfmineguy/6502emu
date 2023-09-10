@@ -214,7 +214,7 @@ void          cpu_ldx(cpu_t*, instruction_t);
 void          cpu_ldy(cpu_t*, instruction_t);
 
 void          cpu_sta(cpu_t*, instruction_t);
-void          cpu_sty(cpu_t*, instruction_t);
+void          cpu_stx(cpu_t*, instruction_t);
 void          cpu_sty(cpu_t*, instruction_t);
 
 void          cpu_ora(cpu_t*, instruction_t);
