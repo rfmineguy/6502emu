@@ -67,6 +67,7 @@ typedef enum {
   AM_ABS,       // $
   AM_ABS_X,     // $__, X
   AM_ABS_Y,     // $__, Y
+  AM_IND,       // JMP only  JMP ($fffc)   jmps to addresss stored at $FFFC
   AM_IND_X,     // (ind,X)
   AM_IND_Y,     // (ind,Y)
   AM_RELATIVE,  // ....
@@ -194,6 +195,7 @@ void          cpu_execute(cpu_t*, instruction_t);
 void          cpu_adc(cpu_t*, instruction_t);
 void          cpu_and(cpu_t*, instruction_t);
 void          cpu_asl(cpu_t*, instruction_t);
+
 void          cpu_bcc(cpu_t*, instruction_t);
 void          cpu_bcs(cpu_t*, instruction_t);
 void          cpu_beq(cpu_t*, instruction_t);
@@ -204,6 +206,8 @@ void          cpu_bpl(cpu_t*, instruction_t);
 void          cpu_brk(cpu_t*, instruction_t);
 void          cpu_bvc(cpu_t*, instruction_t);
 void          cpu_bvs(cpu_t*, instruction_t);
+
+void          cpu_jmp(cpu_t*, instruction_t);
 
 void          cpu_cmp(cpu_t*, instruction_t, uint8_t* reg /*A,X,Y*/);
 void          cpu_dec_mem(cpu_t*, instruction_t);

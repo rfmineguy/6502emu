@@ -129,7 +129,7 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
                 cpu->regY == 0 ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
                 cpu->regY  < 0 ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
                 break; // INS_INY
-  case INS_JMP: assert(0 && "Not implemented"); break;
+  case INS_JMP: cpu_jmp(cpu, ins); break;
   case INS_JSR: assert(0 && "Not implemented"); break;
   case INS_LDA: cpu_lda(cpu, ins); break;
   case INS_LDX: cpu_ldx(cpu, ins); break;
@@ -209,6 +209,13 @@ void cpu_asl(cpu_t* cpu, instruction_t ins) {
   }
   cpu->regA == 0              ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
   cpu->regA &  0b10000000     ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
+}
+
+void cpu_jmp(cpu_t* cpu, instruction_t ins) {
+  switch (ins.am) {
+    case AM_ABS:     cpu->pc = (uint16_t) ins.raw[1]; break;
+    case AM_IND:     cpu->pc = (uint16_t) cpu->memory[(uint16_t)ins.raw[1]]; break;  // NOTE: There is a catch here. Look into it.
+  }
 }
 
 void cpu_cmp(cpu_t* cpu, instruction_t ins, uint8_t* reg) {
