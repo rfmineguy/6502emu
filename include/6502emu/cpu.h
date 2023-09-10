@@ -217,6 +217,8 @@ void          cpu_sta(cpu_t*, instruction_t);
 void          cpu_sty(cpu_t*, instruction_t);
 void          cpu_sty(cpu_t*, instruction_t);
 
+void          cpu_ora(cpu_t*, instruction_t);
+
 instruction_t cpu_get_instruction(int, const cpu_t*);
 
 int           cpu_is_instruction_in_range(instruction_t, int, int);

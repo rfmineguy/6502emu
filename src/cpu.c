@@ -136,7 +136,7 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_LDY: cpu_ldy(cpu, ins); break;
   case INS_LSR: assert(0 && "Not implemented"); break;
   case INS_NOP: /* nothing TODO: enter cycle count */ break;
-  case INS_ORA: assert(0 && "Not implemented"); break;
+  case INS_ORA: cpu_ora(cpu, ins); break;
   case INS_PHA: assert(0 && "Not implemented"); break;
   case INS_PHP: assert(0 && "Not implemented"); break;
   case INS_PLA: assert(0 && "Not implemented"); break;
@@ -149,9 +149,9 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_SEC: assert(0 && "Not implemented"); break;
   case INS_SED: assert(0 && "Not implemented"); break;
   case INS_SEI: assert(0 && "Not implemented"); break;
-  case INS_STA: assert(0 && "Not implemented"); break;
-  case INS_STX: assert(0 && "Not implemented"); break;
-  case INS_STY: assert(0 && "Not implemented"); break;
+  case INS_STA: cpu_sta(cpu, ins); break;
+  case INS_STX: cpu_stx(cpu, ins); break;
+  case INS_STY: cpu_sty(cpu, ins); break;
   case INS_TAX: assert(0 && "Not implemented"); break;
   case INS_TAY: assert(0 && "Not implemented"); break;
   case INS_TSX: assert(0 && "Not implemented"); break;
@@ -332,6 +332,19 @@ void cpu_sty(cpu_t* cpu, instruction_t ins) {
     case AM_ZP_X:  cpu->regY = cpu->memory[(uint16_t)((uint8_t)(ins.raw[1] + cpu->regX))]; break;
     case AM_ABS:   cpu->regY = cpu->memory[(uint16_t)ins.raw[1]];                          break;
     default:           assert(0 && "Fatal default");
+  }
+}
+
+void cpu_ora(cpu_t* cpu, instruction_t ins) {
+  switch (ins.am) {
+    case AM_IMMEDIATE:  cpu->regA |= ins.raw[1]; break;
+    case AM_ZP:         cpu->regA |= cpu->memory[(uint16_t)((uint8_t)(ins.raw[1]            ))]; break;
+    case AM_ZP_X:       cpu->regA |= cpu->memory[(uint16_t)((uint8_t)(ins.raw[1] + cpu->regX))]; break;
+    case AM_ABS:        cpu->regA |= cpu->memory[(uint16_t)ins.raw[1]];                          break;
+    case AM_ABS_X:      cpu->regA |= cpu->memory[(uint16_t)(ins.raw[1] + cpu->regX)];            break;
+    case AM_ABS_Y:      cpu->regA |= cpu->memory[(uint16_t)((uint8_t)(ins.raw[1]))];             break;
+    case AM_IND_X:      assert(0 && "STA (indirect, X) not implemented");                       break;
+    case AM_IND_Y:      assert(0 && "STA (indirect, Y) not implemented");                       break;
   }
 }
 
