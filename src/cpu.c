@@ -212,6 +212,7 @@ void cpu_asl(cpu_t* cpu, instruction_t ins) {
 }
 
 void cpu_jmp(cpu_t* cpu, instruction_t ins) {
+  printf("jmp addr = " PRIu16 "\n", (uint16_t) ins.raw[1]);
   switch (ins.am) {
     case AM_ABS:     cpu->pc = (uint16_t) ins.raw[1]; break;
     case AM_IND:     cpu->pc = (uint16_t) cpu->memory[(uint16_t)ins.raw[1]]; break;  // NOTE: There is a catch here. Look into it.
