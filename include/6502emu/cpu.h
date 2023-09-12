@@ -189,6 +189,9 @@ void          cpu_reg_store(register_e, addressing_mode_e, cpu_t*);
 int           cpu_load_program(const char*, cpu_t*);
 instruction_t cpu_step(cpu_t*);
 
+uint8_t       cpu_get_byte(cpu_t*, uint16_t);
+uint16_t      cpu_get_word(cpu_t*, uint16_t);
+
 uint8_t       cpu_fetch(cpu_t*);
 void          cpu_execute(cpu_t*, instruction_t);
 
