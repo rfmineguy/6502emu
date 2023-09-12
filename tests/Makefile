@@ -1,2 +1,4 @@
-test: test_main.c tests.c munit.c ../src/cpu.c
+SOURCES := $(wildcard src/*.c) ../src/cpu.c
+
+test: $(SOURCES)
 	gcc -o test $^ -I../include/

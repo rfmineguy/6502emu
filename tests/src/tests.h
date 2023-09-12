@@ -2,9 +2,6 @@
 #define TESTS_H
 #include "munit.h"
 
-void*       setup    (const MunitParameter[], void*);
-void        teardown (void*);
-
 MunitResult adc_imm  (const MunitParameter[], void*);
 MunitResult adc_zp   (const MunitParameter[], void*);
 MunitResult adc_zpx  (const MunitParameter[], void*);

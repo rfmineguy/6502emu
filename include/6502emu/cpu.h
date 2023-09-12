@@ -73,6 +73,7 @@ typedef enum {
   AM_RELATIVE,  // ....
   AM_IMPLIED,   // ....
   AM_ACCUMULATOR,
+  AM_UNKNOWN,
 } addressing_mode_e;
 
 // instruction_e
@@ -226,6 +227,7 @@ void          cpu_sty(cpu_t*, instruction_t);
 
 void          cpu_ora(cpu_t*, instruction_t);
 
+// https://llx.com/Neil/a2/opcodes.html
 instruction_t cpu_get_instruction(int, const cpu_t*);
 
 int           cpu_is_instruction_in_range(instruction_t, int, int);
