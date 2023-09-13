@@ -20,6 +20,13 @@ MunitTest adc_tests[] = {
 
 MunitTest and_tests[] = {
   {"/imm", and_imm, setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
+  {"/zp",  and_zp , setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
+  {"/zpx", and_zpx, setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
+  {"/abs", and_abs, setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
+  {"/absx", and_absx, setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
+  {"/absy", and_absy, setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
+  {"/indx", and_indx, setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
+  {"/indy", and_indy, setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
   { NULL, NULL,     NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL}
 };
 
@@ -30,7 +37,7 @@ MunitSuite intermediate[] = {
 };
 
 static const MunitSuite main_suite = {
-  "testing",
+  "6502",
   NULL, //tests,
   intermediate,
   1,

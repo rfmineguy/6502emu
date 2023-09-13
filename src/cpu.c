@@ -186,11 +186,11 @@ void cpu_adc(cpu_t* cpu, instruction_t ins) {
 void cpu_and(cpu_t* cpu, instruction_t ins) {
   switch (ins.am) {
     case AM_IMMEDIATE: cpu->regA &= ins.raw[1]; break;
-    case AM_ZP:        cpu->regA &= cpu->memory[(uint16_t)((uint8_t)ins.raw[1])]; break;
-    case AM_ZP_X:      cpu->regA &= cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX]; break;
-    case AM_ABS:       cpu->regA &= cpu->memory[ins.raw[1]]; break;
-    case AM_ABS_X:     cpu->regA &= cpu->memory[ins.raw[1] + cpu->regX]; break;
-    case AM_ABS_Y:     cpu->regA &= cpu->memory[ins.raw[1] + cpu->regY]; break;
+    case AM_ZP:        cpu->regA &= cpu->memory[*(uint8_t*)  (ins.raw + 1)            ]; break;
+    case AM_ZP_X:      cpu->regA &= cpu->memory[*(uint8_t*)  (ins.raw + 1) + cpu->regX]; break;
+    case AM_ABS:       cpu->regA &= cpu->memory[*(uint16_t*) (ins.raw + 1)            ]; break;
+    case AM_ABS_X:     cpu->regA &= cpu->memory[*(uint16_t*) (ins.raw + 1) + cpu->regX]; break;
+    case AM_ABS_Y:     cpu->regA &= cpu->memory[*(uint16_t*) (ins.raw + 1) + cpu->regY]; break;
     case AM_IND_X:     assert(0 && "AND (indirect, X) doesn't exist"); break;
     case AM_IND_Y:     assert(0 && "AND (indirect, Y) doesn't exist"); break;
     default:           assert(0 && "Fatal default");
