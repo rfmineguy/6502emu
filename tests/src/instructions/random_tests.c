@@ -28,4 +28,6 @@ MunitResult bit_shift_tests(const MunitParameter params[], void* fixture) {
   *(uint8_t*)(arr + 5) <<= 1;
   v8 = *(uint8_t*)(arr + 5);
   munit_assert_int(v8, ==, 0xA8);
+
+  return MUNIT_OK;
 }

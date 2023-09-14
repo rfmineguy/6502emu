@@ -163,9 +163,9 @@ MunitResult sbc_absy (const MunitParameter[], void*);
 MunitResult sbc_indx (const MunitParameter[], void*);
 MunitResult sbc_indy (const MunitParameter[], void*);
 
-MunitResult sec_imp  (const MunitParameter[], void*);
-MunitResult sed_imp  (const MunitParameter[], void*);
-MunitResult sei_imp  (const MunitParameter[], void*);
+MunitResult sec_imp  (const MunitParameter[], void*);  // flags.c
+MunitResult sed_imp  (const MunitParameter[], void*);  // flags.c
+MunitResult sei_imp  (const MunitParameter[], void*);  // flags.c
 
 MunitResult sta_zp   (const MunitParameter[], void*);
 MunitResult sta_zpx  (const MunitParameter[], void*);
@@ -176,20 +176,12 @@ MunitResult sta_indx (const MunitParameter[], void*);
 MunitResult sta_indy (const MunitParameter[], void*);
 
 MunitResult stx_zp   (const MunitParameter[], void*);
-MunitResult stx_zpx  (const MunitParameter[], void*);
+MunitResult stx_zpy  (const MunitParameter[], void*);
 MunitResult stx_abs  (const MunitParameter[], void*);
-MunitResult stx_absx (const MunitParameter[], void*);
-MunitResult stx_absy (const MunitParameter[], void*);
-MunitResult stx_indx (const MunitParameter[], void*);
-MunitResult stx_indy (const MunitParameter[], void*);
 
 MunitResult sty_zp   (const MunitParameter[], void*);
 MunitResult sty_zpx  (const MunitParameter[], void*);
 MunitResult sty_abs  (const MunitParameter[], void*);
-MunitResult sty_absx (const MunitParameter[], void*);
-MunitResult sty_absy (const MunitParameter[], void*);
-MunitResult sty_indx (const MunitParameter[], void*);
-MunitResult sty_indy (const MunitParameter[], void*);
 
 MunitResult tax_imp  (const MunitParameter[], void*);
 MunitResult tay_imp  (const MunitParameter[], void*);
