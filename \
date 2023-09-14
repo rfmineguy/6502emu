@@ -210,19 +210,19 @@ void cpu_asl(cpu_t* cpu, instruction_t ins) {
     case AM_ABS_X:       break;
     default:             assert(0 && "Fatal default");
   }
-  // Deal with shift
   uint8_t value;  // value that resulted
+  // Deal with shift
   switch (ins.am) {
-    case AM_ACCUMULATOR: value = (cpu->regA <<= 1);                                                      break;
-    case AM_ZP:          value = (cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1))] <<= 1);              break;
-    case AM_ZP_X:        value = (cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1) + cpu->regX)] <<= 1);  break;
-    case AM_ABS:         value = (cpu->memory[         (*(uint16_t*)(ins.raw + 1))] <<= 1);              break;
-    case AM_ABS_X:       value = (cpu->memory[         (*(uint16_t*)(ins.raw + 1) + cpu->regX)] <<= 1);  break;
+    case AM_ACCUMULATOR: cpu->regA <<= 1;                                                          break;
+    case AM_ZP:          cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1))] <<= 1;                  break;
+    case AM_ZP_X:        cpu->regA <<= (cpu->memory[(uint16_t)((uint8_t)ins.raw[1] + cpu->regX)]); break;
+    case AM_ABS:         cpu->regA <<= (cpu->memory[(uint16_t)ins.raw[1]]);                        break;
+    case AM_ABS_X:       cpu->regA <<= (cpu->memory[(uint16_t)ins.raw[1] + cpu->regX]);            break;
     default:             assert(0 && "Fatal default");
   }
   // printf("asl ;: %2X\n", cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1))]);
-  value == 0              ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
-  value &  0b10000000     ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
+  cpu->regA == 0              ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
+  cpu->regA &  0b10000000     ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
 }
 
 void cpu_jmp(cpu_t* cpu, instruction_t ins) {

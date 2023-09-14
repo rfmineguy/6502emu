@@ -213,11 +213,11 @@ void cpu_asl(cpu_t* cpu, instruction_t ins) {
   // Deal with shift
   uint8_t value;  // value that resulted
   switch (ins.am) {
-    case AM_ACCUMULATOR: value = (cpu->regA <<= 1);                                                      break;
-    case AM_ZP:          value = (cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1))] <<= 1);              break;
-    case AM_ZP_X:        value = (cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1) + cpu->regX)] <<= 1);  break;
-    case AM_ABS:         value = (cpu->memory[         (*(uint16_t*)(ins.raw + 1))] <<= 1);              break;
-    case AM_ABS_X:       value = (cpu->memory[         (*(uint16_t*)(ins.raw + 1) + cpu->regX)] <<= 1);  break;
+    case AM_ACCUMULATOR: value = (cpu->regA <<= 1);                                                   break;
+    case AM_ZP:          value = (cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1))] <<= 1);           break;
+    case AM_ZP_X:        value = (cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1) + cpu->regX)] <<= 1); break;
+    case AM_ABS:         value = (cpu->memory[(uint16_t)(*(uint16_t*)(ins.raw + 1))] <<= 1);                        break;
+    case AM_ABS_X:       cpu->regA <<= (cpu->memory[(uint16_t)ins.raw[1] + cpu->regX]);               break;
     default:             assert(0 && "Fatal default");
   }
   // printf("asl ;: %2X\n", cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1))]);
