@@ -22,6 +22,7 @@ MunitResult asl_acc(const MunitParameter params[], void* fixture) {
   munit_assert_int(cpu.regA,                       ==, 0x1e);
   munit_assert_int(cpu.status_flags & SF_CARRY,    ==, 0   );
   munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, 0   ); // negative flag should be off
+  return MUNIT_OK;
 }
 
 MunitResult asl_zp(const MunitParameter params[], void* fixture) {
@@ -74,6 +75,7 @@ MunitResult asl_zp(const MunitParameter params[], void* fixture) {
   munit_assert_int(cpu.status_flags & SF_ZERO,            ==, 0   ); // zero flag should be off
   munit_assert_int(cpu.status_flags & SF_CARRY,           ==, 1   ); // carry flag should be on
   munit_assert_int((cpu.status_flags & SF_NEGATIVE) >> 7, ==, 1   ); // negative flag should be on
+  return MUNIT_OK;
 }
 
 MunitResult asl_zpx(const MunitParameter params[], void* fixture) {
@@ -102,6 +104,7 @@ MunitResult asl_zpx(const MunitParameter params[], void* fixture) {
   munit_assert_int(cpu.status_flags & SF_ZERO,     ==, 0   ); // zero flag should be off
   munit_assert_int(cpu.status_flags & SF_CARRY,    ==, 0   );
   munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, 0   );
+  return MUNIT_OK;
 }
 
 MunitResult asl_abs(const MunitParameter params[], void* fixture) {
@@ -131,6 +134,7 @@ MunitResult asl_abs(const MunitParameter params[], void* fixture) {
   munit_assert_int(cpu.status_flags & SF_ZERO,     ==, 0   ); // zero flag should be off
   munit_assert_int(cpu.status_flags & SF_CARRY,    ==, 0   );
   munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, 0   );
+  return MUNIT_OK;
 }
 
 MunitResult asl_absx(const MunitParameter params[], void* fixture) {
@@ -161,4 +165,5 @@ MunitResult asl_absx(const MunitParameter params[], void* fixture) {
   munit_assert_int(cpu.status_flags & SF_ZERO,     ==, 0   ); // zero flag should be off
   munit_assert_int(cpu.status_flags & SF_CARRY,    ==, 0   );
   munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, 0   );
+  return MUNIT_OK;
 }

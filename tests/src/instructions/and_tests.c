@@ -17,6 +17,7 @@ MunitResult and_imm(const MunitParameter params[], void* fixture) {
   cpu_execute(&cpu, ins);
   munit_assert_int(cpu.regA,                       ==, 0x80);
   munit_assert_int(cpu.status_flags & SF_NEGATIVE, !=, 0   );
+  return MUNIT_OK;
 }
 
 MunitResult and_zp(const MunitParameter params[], void* fixture) {
@@ -34,6 +35,7 @@ MunitResult and_zp(const MunitParameter params[], void* fixture) {
   cpu_execute(&cpu, ins);
   munit_assert_int(cpu.regA,                       ==, 0x84);
   munit_assert_int(cpu.status_flags & SF_NEGATIVE, !=, 1   );
+  return MUNIT_OK;
 }
 
 MunitResult and_zpx(const MunitParameter params[], void* fixture) {
@@ -53,6 +55,7 @@ MunitResult and_zpx(const MunitParameter params[], void* fixture) {
 
   munit_assert_int(cpu.regA,                       ==, 0x84);
   munit_assert_int(cpu.status_flags & SF_NEGATIVE, !=, 1   );
+  return MUNIT_OK;
 }
 
 MunitResult and_abs(const MunitParameter params[], void* fixture) {
@@ -77,6 +80,7 @@ MunitResult and_abs(const MunitParameter params[], void* fixture) {
 
   munit_assert_int(cpu.regA,                       ==, 0x04);
   munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, 0   );
+  return MUNIT_OK;
 }
 
 MunitResult and_absx(const MunitParameter params[], void* fixture) {
@@ -102,6 +106,7 @@ MunitResult and_absx(const MunitParameter params[], void* fixture) {
 
   munit_assert_int(cpu.regA,                       ==, 0x04);
   munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, 0   );
+  return MUNIT_OK;
 }
 
 MunitResult and_absy(const MunitParameter params[], void* fixture) {
@@ -126,6 +131,7 @@ MunitResult and_absy(const MunitParameter params[], void* fixture) {
 
   munit_assert_int(cpu.regA,                       ==, 0x04);
   munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, 0   );
+  return MUNIT_OK;
 }
 
 MunitResult and_indx(const MunitParameter params[], void* fixture) {
