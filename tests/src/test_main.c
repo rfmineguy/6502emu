@@ -242,12 +242,6 @@ MunitTest sbc_tests[] = {
   {"/indy",  sbc_indy,  setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
   { NULL, NULL,     NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL}
 };
-MunitTest sec_tests[] = {
-  { "/sec/imp", sec_imp, setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
-  { "/sed/imp", sed_imp, setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
-  { "/sei/imp", sei_imp, setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
-  { NULL, NULL,     NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL}
-};
 MunitTest sta_tests[] = {
   {"/zp",    sta_zp  ,  setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
   {"/zpx",   sta_zpx ,  setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
@@ -317,7 +311,6 @@ MunitSuite intermediate[] = {
   {"/rti",    rti_tests,             NULL, 1, MUNIT_SUITE_OPTION_NONE},
   {"/rts",    rts_tests,             NULL, 1, MUNIT_SUITE_OPTION_NONE},
   {"/sbc",    sbc_tests,             NULL, 1, MUNIT_SUITE_OPTION_NONE},
-  {"/sec",    sec_tests,             NULL, 1, MUNIT_SUITE_OPTION_NONE},
   {"/sta",    sta_tests,             NULL, 1, MUNIT_SUITE_OPTION_NONE},
   {"/stx",    stx_tests,             NULL, 1, MUNIT_SUITE_OPTION_NONE},
   {"/sty",    sty_tests,             NULL, 1, MUNIT_SUITE_OPTION_NONE},

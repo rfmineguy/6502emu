@@ -146,9 +146,9 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_RTI: assert(0 && "Not implemented"); break;
   case INS_RTS: assert(0 && "Not implemented"); break;
   case INS_SBC: assert(0 && "Not implemented"); break;
-  case INS_SEC: cpu->status_flags |= SF_CARRY; break;
-  case INS_SED: assert(0 && "Not implemented"); break;
-  case INS_SEI: assert(0 && "Not implemented"); break;
+  case INS_SEC: cpu->status_flags |= SF_CARRY;   break;
+  case INS_SED: cpu->status_flags |= SF_DECIMAL; break;
+  case INS_SEI: cpu->status_flags |= SF_INTDISA; break;
   case INS_STA: cpu_sta(cpu, ins); break;
   case INS_STX: cpu_stx(cpu, ins); break;
   case INS_STY: cpu_sty(cpu, ins); break;
