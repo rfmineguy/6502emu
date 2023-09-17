@@ -135,9 +135,61 @@ MunitResult and_absy(const MunitParameter params[], void* fixture) {
 }
 
 MunitResult and_indx(const MunitParameter params[], void* fixture) {
-  return MUNIT_ERROR;
+  cpu_t cpu = {0};
+  // AND ($40, X)
+  cpu.memory[0x0 ] = 0x21; // and (ind, X)
+  cpu.memory[0x1 ] = 0x40; // $40     // use address value at $40 + X as memory to add
+  cpu.memory[0x41] = 0x15; //
+  cpu.memory[0x42] = 0x00; // $0015
+  cpu.memory[0x15] = 0x15;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+  munit_assert_int(ins.bytes, ==, 2);
+
+  /* test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "AND ($40, X)");
+
+  cpu.regX = 1;
+  cpu.regA = 0xff;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.regA,                       ==, 0x15);
+  munit_assert_int(cpu.status_flags & SF_NEGATIVE, !=, 1   );
+
+  cpu.regX = 1;
+  cpu.regA = 0;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.regA,                       ==, 0x00);
+  munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, 0   );
+
+  return MUNIT_OK;
 }
 
 MunitResult and_indy(const MunitParameter params[], void* fixture) {
-  return MUNIT_ERROR;
+  cpu_t cpu = {0};
+  // AND ($40, Y)
+  cpu.memory[0x0 ] = 0x31; // and (ind, Y)
+  cpu.memory[0x1 ] = 0x40; // $40     // use address value at $40 + X as memory to add
+  cpu.memory[0x41] = 0x15; //
+  cpu.memory[0x42] = 0x00; // $0015
+  cpu.memory[0x15] = 0x15;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+  munit_assert_int(ins.bytes, ==, 2);
+
+  /* test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "AND ($40), Y");
+
+  cpu.regY = 1;
+  cpu.regA = 0xff;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.regA,                       ==, 0x15);
+  munit_assert_int(cpu.status_flags & SF_NEGATIVE, !=, 1   );
+
+  cpu.regY = 1;
+  cpu.regA = 0;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.regA,                       ==, 0x00);
+  munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, 0   );
+
+  return MUNIT_OK;
 }

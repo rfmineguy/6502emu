@@ -22,18 +22,54 @@ MunitResult clc_imp(const MunitParameter params[], void* fixture) {
 }
 
 MunitResult cld_imp(const MunitParameter params[], void* fixture) {
+  cpu_t cpu = {0};
 
-  return MUNIT_ERROR;
+  cpu.memory[0x0] = 0xD8;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+
+  /* test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "CLD");
+
+  /*  test with carry flag set */
+  cpu.status_flags |= SF_DECIMAL;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.status_flags & SF_DECIMAL,           ==, 0   );
+  return MUNIT_OK;
 }
 
 MunitResult cli_imp(const MunitParameter params[], void* fixture) {
+  cpu_t cpu = {0};
 
-  return MUNIT_ERROR;
+  cpu.memory[0x0] = 0x58;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+
+  /* test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "CLI");
+
+  /*  test with carry flag set */
+  cpu.status_flags |= SF_INTDISA;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.status_flags & SF_INTDISA,           ==, 0   );
+  return MUNIT_OK;
 }
 
 MunitResult clv_imp(const MunitParameter params[], void* fixture) {
+  cpu_t cpu = {0};
 
-  return MUNIT_ERROR;
+  cpu.memory[0x0] = 0xB8;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+
+  /* test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "CLV");
+
+  /*  test with carry flag set */
+  cpu.status_flags |= SF_OVERFLOW;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.status_flags & SF_OVERFLOW,           ==, 0   );
+  return MUNIT_OK;
 }
 
 MunitResult sec_imp(const MunitParameter params[], void* fixture) {

@@ -211,10 +211,79 @@ MunitResult adc_absy (const MunitParameter params[], void* fixture) {
   return MUNIT_OK;
 }
 
+// http://www.emulator101.com/6502-addressing-modes.html
 MunitResult adc_indx(const MunitParameter params[], void* fixture) {
-  return MUNIT_ERROR;
+  cpu_t cpu = {0};
+  // ADC ($40, X)
+  cpu.memory[0x0 ] = 0x61; // adc (ind, X)
+  cpu.memory[0x1 ] = 0x40; // $40     // use address value at $40 + X as memory to add
+  cpu.memory[0x41] = 0x15; //
+  cpu.memory[0x42] = 0x00; // $0015
+  cpu.memory[0x15] = 0x15;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+  munit_assert_int(ins.bytes, ==, 2);
+
+  /* test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "ADC ($40, X)");
+
+  cpu.status_flags |= SF_CARRY;
+  cpu.regX = 1;
+  cpu.regA = 0;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.regA, ==, 0x16);
+  munit_assert_int(cpu.status_flags & SF_CARRY,           ==, 0   );
+  munit_assert_int((cpu.status_flags & SF_NEGATIVE) >> 7, ==, 0   );
+  munit_assert_int(cpu.status_flags & SF_ZERO,            ==, 0   );
+  munit_assert_int(cpu.status_flags & SF_OVERFLOW,        !=, SF_OVERFLOW   );
+
+  cpu.status_flags &= ~(SF_CARRY);
+  cpu.regX = 1;
+  cpu.regA = 0;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.regA, ==, 0x15);
+  munit_assert_int(cpu.status_flags & SF_CARRY,           ==, 0   );
+  munit_assert_int((cpu.status_flags & SF_NEGATIVE) >> 7, ==, 0   );
+  munit_assert_int(cpu.status_flags & SF_ZERO,            ==, 0   );
+  munit_assert_int(cpu.status_flags & SF_OVERFLOW,        !=, SF_OVERFLOW   );
+
+  return MUNIT_OK;
 }
 
 MunitResult adc_indy(const MunitParameter params[], void* fixture) {
-  return MUNIT_ERROR;
+  cpu_t cpu = {0};
+  // ADC $0040
+  cpu.memory[0x0 ] = 0x71; // adc (ind), Y
+  cpu.memory[0x1 ] = 0x40; // $40     // use address value at $40 + X as memory to add
+  cpu.memory[0x41] = 0x15; //
+  cpu.memory[0x42] = 0x00; // $0015
+  cpu.memory[0x15] = 0x15;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+  munit_assert_int(ins.bytes, ==, 2);
+
+  /* test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "ADC ($40), Y");
+
+  cpu.status_flags |= SF_CARRY;
+  cpu.regY = 0x01;
+  cpu.regA = 0;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.regA, ==, 0x16);
+  munit_assert_int(cpu.status_flags & SF_CARRY,           ==, 0   );
+  munit_assert_int((cpu.status_flags & SF_NEGATIVE) >> 7, ==, 0   );
+  munit_assert_int(cpu.status_flags & SF_ZERO,            ==, 0   );
+  munit_assert_int(cpu.status_flags & SF_OVERFLOW,        !=, SF_OVERFLOW   );
+
+  cpu.status_flags &= ~(SF_CARRY);
+  cpu.regY = 0x01;
+  cpu.regA = 0;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.regA, ==, 0x15);
+  munit_assert_int(cpu.status_flags & SF_CARRY,           ==, 0   );
+  munit_assert_int((cpu.status_flags & SF_NEGATIVE) >> 7, ==, 0   );
+  munit_assert_int(cpu.status_flags & SF_ZERO,            ==, 0   );
+  munit_assert_int(cpu.status_flags & SF_OVERFLOW,        !=, SF_OVERFLOW   );
+
+  return MUNIT_OK;
 }

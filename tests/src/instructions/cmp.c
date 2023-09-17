@@ -21,6 +21,7 @@ MunitResult cmp_imm  (const MunitParameter params[], void* fixture) {
 
   return MUNIT_OK;
 }
+
 MunitResult cmp_zp   (const MunitParameter params[], void* fixture) { 
   cpu_t cpu;
   cpu.memory[0x0]  = 0xC5;
@@ -35,6 +36,7 @@ MunitResult cmp_zp   (const MunitParameter params[], void* fixture) {
   cpu_execute(&cpu, ins);
 
   munit_assert_int(cpu.status_flags & SF_CARRY,    ==, 1);
+  munit_assert_int(cpu.status_flags & SF_ZERO,     ==, 0);
   munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, 0);
 
   return MUNIT_OK; 
