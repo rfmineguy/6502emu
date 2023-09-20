@@ -2,3 +2,4 @@ out/
 *.swp
 src/*.swp
 build/
+tests/test
