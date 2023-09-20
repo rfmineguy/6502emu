@@ -119,7 +119,7 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_CLV: cpu->status_flags &= ~(SF_OVERFLOW);       break; //clear the overflow bit
   case INS_CMP: cpu_cmp(cpu, ins, &cpu->regA);             break;
   case INS_CPX: cpu_cmp(cpu, ins, &cpu->regX);             break;
-  case INS_CPY: cpu_cmp(cpu, ins, &cpu->regX);             break;
+  case INS_CPY: cpu_cmp(cpu, ins, &cpu->regY);             break;
   case INS_DEC: cpu_dec_mem(cpu, ins); break;
   case INS_DEX: cpu->regX--; 
                 cpu->regX == 0         ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
@@ -260,21 +260,21 @@ void cpu_jmp(cpu_t* cpu, instruction_t ins) {
 void cpu_cmp(cpu_t* cpu, instruction_t ins, uint8_t* reg) {
   int r;
   switch (ins.am) {
-    case AM_IMMEDIATE: r = *reg - ins.raw[1];                                               break;
-    case AM_ZP:        r = *reg - cpu->memory[(uint16_t)((uint8_t)ins.raw[1])];             break;
-    case AM_ZP_X:      r = *reg - cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX]; break;
-    case AM_ZP_Y:      /**/                                                                 break;
-    case AM_ABS:       r = *reg - cpu->memory[(uint16_t)ins.raw[1]];                        break;
-    case AM_ABS_X:     r = *reg - cpu->memory[(uint16_t)ins.raw[1] + cpu->regX];            break;
-    case AM_ABS_Y:     r = *reg - cpu->memory[(uint16_t)ins.raw[1] + cpu->regY];            break;
-    case AM_IND_X:     assert(0 && "CMP (indirect, X) not implemented");                    break;
-    case AM_IND_Y:     assert(0 && "CMP (indirect, Y) not implemented");                    break;
+    case AM_IMMEDIATE: r = *reg - ins.raw[1];                                                                     break;
+    case AM_ZP:        r = *reg - cpu->memory[(uint16_t)((uint8_t)ins.raw[1])];                                   break;
+    case AM_ZP_X:      r = *reg - cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX];                       break;
+    case AM_ZP_Y:      /**/                                                                                       break;
+    case AM_ABS:       r = *reg - cpu->memory[(uint16_t)ins.raw[1]];                                              break;
+    case AM_ABS_X:     r = *reg - cpu->memory[(uint16_t)ins.raw[1] + cpu->regX];                                  break;
+    case AM_ABS_Y:     r = *reg - cpu->memory[(uint16_t)ins.raw[1] + cpu->regY];                                  break;
+    case AM_IND_X:     r = *reg - cpu->memory[(cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX]) % 0xff]; break;
+    case AM_IND_Y:     r = *reg - cpu->memory[(cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regY]) % 0xff]; break;
     case AM_RELATIVE:  /**/                                                                 break;
     case AM_IMPLIED:   /**/                                                                 break;
     default:           assert(0 && "Fatal default");
   }
   // Set/Clear the appropriate status flags
-  (r > 0)          ? (cpu->status_flags |= SF_CARRY   ) : (cpu->status_flags &= ~(SF_CARRY));
+  (r >= 0)         ? (cpu->status_flags |= SF_CARRY   ) : (cpu->status_flags &= ~(SF_CARRY));
   (r == 0)         ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
   (r & 0b10000000) ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
 }

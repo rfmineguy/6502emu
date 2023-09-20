@@ -128,10 +128,45 @@ MunitResult cmp_absy (const MunitParameter params[], void* fixture) {
   return MUNIT_OK; 
 }
 
+// http://www.emulator101.com/6502-addressing-modes.html
 MunitResult cmp_indx (const MunitParameter params[], void* fixture) {
-  return MUNIT_ERROR; 
+  cpu_t cpu;
+  cpu.memory[0x0]    = 0xC1;
+  cpu.memory[0x1]    = 0x20;
+  cpu.memory[0x0021] = 0x40;
+  cpu.regX = 1;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+  munit_assert_int(ins.bytes, ==, 2);
+
+  munit_assert_string_equal(ins.str, "CMP ($20, X)");
+  cpu.regA = 80;
+  cpu_execute(&cpu, ins);
+
+  munit_assert_int(cpu.status_flags & SF_CARRY,    ==, 1);
+  munit_assert_int(cpu.status_flags & SF_ZERO,     ==, 0);
+  munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, 0);
+
+  return MUNIT_OK; 
 }
 
 MunitResult cmp_indy (const MunitParameter params[], void* fixture) {
-  return MUNIT_ERROR; 
+  cpu_t cpu;
+  cpu.memory[0x0]    = 0xD1;
+  cpu.memory[0x1]    = 0x20;
+  cpu.memory[0x0021] = 0x40;
+  cpu.regY = 1;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+  munit_assert_int(ins.bytes, ==, 2);
+
+  munit_assert_string_equal(ins.str, "CMP ($20), Y");
+  cpu.regA = 80;
+  cpu_execute(&cpu, ins);
+
+  munit_assert_int(cpu.status_flags & SF_CARRY,    ==, 1);
+  munit_assert_int(cpu.status_flags & SF_ZERO,     ==, 0);
+  munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, 0);
+
+  return MUNIT_OK; 
 }

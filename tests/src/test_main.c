@@ -331,4 +331,3 @@ static const MunitSuite main_suite = {
 int main(int argc, const char** argv) {
   return munit_suite_main(&main_suite, NULL, argc, (char *const *)argv);
 }
-
