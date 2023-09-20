@@ -43,7 +43,7 @@ MunitResult bit_abs(const MunitParameter params[], void* fixture) {
 
   // regA = 0b11001010  // 0xCA
   cpu_execute(&cpu, ins);
-  cpu_dump_regs(&cpu);
+  // cpu_dump_regs(&cpu);
   munit_assert_int(cpu.status_flags & SF_ZERO,     ==, 0); // if (regA & M) = 0
   munit_assert_int(cpu.status_flags & SF_OVERFLOW, ==, SF_OVERFLOW); // (regA & M) & 0b01000000
   munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, SF_NEGATIVE); // (regA & M) & 0b10000000

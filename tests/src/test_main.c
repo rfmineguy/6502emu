@@ -49,6 +49,8 @@ MunitTest branch_tests[] = {
   {"/bcc",  bcc_rel,  setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
   {"/bcs",  bcs_rel,  setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
   {"/beq",  beq_rel,  setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
+  {"/bne",  bne_rel,  setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
+  {"/bpl",  bpl_rel,  setup, teardown, MUNIT_TEST_OPTION_NONE, NULL},
   { NULL, NULL,     NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL}
 };
 MunitTest brk_tests[] = {

@@ -1,7 +1,7 @@
 Modules list:
 -------------
 test.o:
-    CODE              Offs=000000  Size=00000B  Align=00001  Fill=0000
+    CODE              Offs=000000  Size=00001D  Align=00001  Fill=0000
     VECTORS           Offs=000000  Size=000006  Align=00001  Fill=0000
 
 
@@ -9,7 +9,7 @@ Segment list:
 -------------
 Name                   Start     End    Size  Align
 ----------------------------------------------------
-CODE                  008000  00800A  00000B  00001
+CODE                  008000  00801C  00001D  00001
 VECTORS               00FFFA  00FFFF  000006  00001
 
 

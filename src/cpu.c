@@ -83,6 +83,16 @@ instruction_t cpu_step(cpu_t* cpu) {
   return ins;
 }
 
+void cpu_dump_regs(const cpu_t* cpu) {
+  #define BYTE_BIT_FMT "%d%d%d%d%d%d%d%d"
+  #define BYTE_BIT_ARG(x) ((x) >> 7)&1, ((x) >> 6)&1, ((x) >> 5)&1, ((x) >> 4)&1, ((x) >> 3)&1, ((x) >> 2)&1, ((x) >> 1)&1, ((x) >> 0)&1
+
+  printf("A: %02X\n", cpu->regA);
+  printf("X: %02X\n", cpu->regX);
+  printf("Y: %02X\n", cpu->regY);
+  printf("Status: " BYTE_BIT_FMT, BYTE_BIT_ARG(cpu->status_flags));
+}
+
 uint8_t cpu_fetch(cpu_t* cpu) {
   return cpu->memory[cpu->pc];
 }
@@ -93,16 +103,16 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_ADC: cpu_adc(cpu, ins); break;
   case INS_AND: cpu_and(cpu, ins); break;
   case INS_ASL: cpu_asl(cpu, ins); break; 
-  case INS_BCC: assert(0 && "Not implmented"); break;
-  case INS_BCS: assert(0 && "Not implmented"); break;
-  case INS_BEQ: assert(0 && "Not implmented"); break;
-  case INS_BIT: assert(0 && "Not implmented"); break;
-  case INS_BMI: assert(0 && "Not implmented"); break;
-  case INS_BNE: assert(0 && "Not implmented"); break;
-  case INS_BPL: assert(0 && "Not implmented"); break;
+  case INS_BCC: if ((cpu->status_flags & SF_CARRY) == 0)              { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
+  case INS_BCS: if ((cpu->status_flags & SF_CARRY) == SF_CARRY)       { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
+  case INS_BEQ: if ((cpu->status_flags & SF_ZERO) == SF_ZERO)         { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
+  case INS_BMI: if ((cpu->status_flags & SF_NEGATIVE) == SF_NEGATIVE) { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
+  case INS_BNE: if ((cpu->status_flags & SF_ZERO) == 0)               { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
+  case INS_BPL: if ((cpu->status_flags & SF_NEGATIVE) == 0)           { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
   case INS_BRK: assert(0 && "Not implmented"); break;
   case INS_BVC: assert(0 && "Not implmented"); break;
   case INS_BVS: assert(0 && "Not implmented"); break;
+  case INS_BIT: cpu_bit(cpu, ins); break;
   case INS_CLC: cpu->status_flags &= ~(SF_CARRY);          break; //clear the carry bit
   case INS_CLD: cpu->status_flags &= ~(SF_DECIMAL);        break; //clear the decimal bit
   case INS_CLI: cpu->status_flags &= ~(SF_INTDISA);        break; //clear the interupt disable bit
@@ -112,12 +122,12 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_CPY: cpu_cmp(cpu, ins, &cpu->regX);             break;
   case INS_DEC: cpu_dec_mem(cpu, ins); break;
   case INS_DEX: cpu->regX--; 
-                cpu->regX == 0 ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
-                cpu->regX  < 0 ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
+                cpu->regX == 0         ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
+                cpu->regX & 0b10000000 ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
                 break; // INS_DEX
   case INS_DEY: cpu->regY--;
-                cpu->regY == 0 ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
-                cpu->regY  < 0 ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
+                cpu->regY == 0         ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
+                cpu->regY & 0b10000000 ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
                 break; // INS_DEY
   case INS_EOR: assert(0 && "Not implemented"); break;
   case INS_INC: cpu_inc_mem(cpu, ins); break;
@@ -161,24 +171,38 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   }
 }
 
+void cpu_bit(cpu_t* cpu, instruction_t ins) {
+  uint8_t r;
+  switch (ins.am) {
+    case AM_ZP:   r = (cpu->regA & cpu->memory[(uint16_t)((uint8_t)ins.raw[1])]); break;
+    case AM_ABS:  r = (cpu->regA & cpu->memory[*(uint16_t*)(ins.raw + 1)]);       break;
+    default:      assert(0 && "Fatal default"); break;
+  }
+  // printf("addr: %04X; *addr: %02X\n", *(uint16_t*)(ins.raw + 1), cpu->memory[*(uint16_t*)(ins.raw + 1)]);
+  // printf("bit: r = %2X\n", r);
+  (r & 0b10000000)               ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
+  (r & 0b01000000)               ? (cpu->status_flags |= SF_OVERFLOW) : (cpu->status_flags &= ~(SF_OVERFLOW));
+  r == 0                         ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
+}
+
 void cpu_adc(cpu_t* cpu, instruction_t ins) {
   uint16_t r = 0;
   switch (ins.am) {
-    case AM_IMMEDIATE: r = cpu->regA + ins.raw[1]                                                 + (cpu->status_flags & SF_CARRY); break;
-    case AM_ZP:        r = cpu->regA + cpu->memory[(uint16_t)((uint8_t)ins.raw[1])]               + (cpu->status_flags & SF_CARRY); break;
-    case AM_ZP_X:      r = cpu->regA + cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX]   + (cpu->status_flags & SF_CARRY); break;
-    case AM_ABS:       r = cpu->regA + cpu->memory[(uint16_t)ins.raw[1]                       ]   + (cpu->status_flags & SF_CARRY); break;
-    case AM_ABS_X:     r = cpu->regA + cpu->memory[(uint16_t)(ins.raw[1]            + cpu->regX)] + (cpu->status_flags & SF_CARRY); break;
-    case AM_ABS_Y:     r = cpu->regA + cpu->memory[(uint16_t)(ins.raw[1]            + cpu->regY)] + (cpu->status_flags & SF_CARRY); break;
-    case AM_IND_X:     assert(0 && "ADC (indirect, X) not supported"); break;
-    case AM_IND_Y:     assert(0 && "ADC (indirect, Y) not supported"); break;
+    case AM_IMMEDIATE: r = cpu->regA + ins.raw[1]                                                                     + (cpu->status_flags & SF_CARRY); break;
+    case AM_ZP:        r = cpu->regA + cpu->memory[(uint16_t)((uint8_t)ins.raw[1])]                                   + (cpu->status_flags & SF_CARRY); break;
+    case AM_ZP_X:      r = cpu->regA + cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX]                       + (cpu->status_flags & SF_CARRY); break;
+    case AM_ABS:       r = cpu->regA + cpu->memory[(uint16_t)ins.raw[1]                       ]                       + (cpu->status_flags & SF_CARRY); break;
+    case AM_ABS_X:     r = cpu->regA + cpu->memory[(uint16_t)(ins.raw[1]            + cpu->regX)]                     + (cpu->status_flags & SF_CARRY); break;
+    case AM_ABS_Y:     r = cpu->regA + cpu->memory[(uint16_t)(ins.raw[1]            + cpu->regY)]                     + (cpu->status_flags & SF_CARRY); break;
+    case AM_IND_X:     r = cpu->regA + cpu->memory[(cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX]) % 0xff] + (cpu->status_flags & SF_CARRY); break;
+    case AM_IND_Y:     r = cpu->regA + cpu->memory[(cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regY]) % 0xff] + (cpu->status_flags & SF_CARRY); break;
     default:           assert(0 && "Fatal default"); break;
   }
   cpu->regA = r;
 
   // Set/Clear the appropriate status flags
   (r & 0b10000000)               ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
-  cpu->regA == 0                 ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
+  r == 0                         ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
   r > 0xff                       ? (cpu->status_flags |= SF_OVERFLOW) : (cpu->status_flags &= ~(SF_OVERFLOW));
   r & 0x100                      ? (cpu->status_flags |= SF_CARRY)    : (cpu->status_flags &= ~(SF_CARRY));
 }
@@ -191,8 +215,8 @@ void cpu_and(cpu_t* cpu, instruction_t ins) {
     case AM_ABS:       cpu->regA &= cpu->memory[*(uint16_t*) (ins.raw + 1)            ]; break;
     case AM_ABS_X:     cpu->regA &= cpu->memory[*(uint16_t*) (ins.raw + 1) + cpu->regX]; break;
     case AM_ABS_Y:     cpu->regA &= cpu->memory[*(uint16_t*) (ins.raw + 1) + cpu->regY]; break;
-    case AM_IND_X:     assert(0 && "AND (indirect, X) doesn't exist"); break;
-    case AM_IND_Y:     assert(0 && "AND (indirect, Y) doesn't exist"); break;
+    case AM_IND_X:     cpu->regA &= cpu->memory[(cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX]) % 0xff]; break;
+    case AM_IND_Y:     cpu->regA &= cpu->memory[(cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regY]) % 0xff]; break;
     default:           assert(0 && "Fatal default");
   }
 
@@ -391,14 +415,14 @@ instruction_t cpu_get_instruction(int index, const cpu_t* cpu) {
 
     case 0x20: STR_APPEND(str_rep, "%s", "JSR"); ins.bytes = 3; ins.inst = INS_JSR; ins.am = AM_ABS; break;
 
-    case 0x10: STR_APPEND(str_rep, "%s", "BPL"); ins.bytes = 1; ins.inst = INS_BPL; ins.am = AM_RELATIVE; break;
-    case 0x30: STR_APPEND(str_rep, "%s", "BMI"); ins.bytes = 1; ins.inst = INS_BMI; ins.am = AM_RELATIVE; break;
-    case 0x50: STR_APPEND(str_rep, "%s", "BVC"); ins.bytes = 1; ins.inst = INS_BVC; ins.am = AM_RELATIVE; break;
-    case 0x70: STR_APPEND(str_rep, "%s", "BVS"); ins.bytes = 1; ins.inst = INS_BVS; ins.am = AM_RELATIVE; break;
-    case 0x90: STR_APPEND(str_rep, "%s", "BCC"); ins.bytes = 1; ins.inst = INS_BCC; ins.am = AM_RELATIVE; break;
-    case 0xB0: STR_APPEND(str_rep, "%s", "BCS"); ins.bytes = 1; ins.inst = INS_BCS; ins.am = AM_RELATIVE; break;
-    case 0xD0: STR_APPEND(str_rep, "%s", "BNE"); ins.bytes = 1; ins.inst = INS_BNE; ins.am = AM_RELATIVE; break;
-    case 0xF0: STR_APPEND(str_rep, "%s", "BEQ"); ins.bytes = 1; ins.inst = INS_BEQ; ins.am = AM_RELATIVE; break;
+    case 0x10: STR_APPEND(str_rep, "%s", "BPL"); ins.bytes = 2; ins.inst = INS_BPL; ins.am = AM_RELATIVE; break;
+    case 0x30: STR_APPEND(str_rep, "%s", "BMI"); ins.bytes = 2; ins.inst = INS_BMI; ins.am = AM_RELATIVE; break;
+    case 0x50: STR_APPEND(str_rep, "%s", "BVC"); ins.bytes = 2; ins.inst = INS_BVC; ins.am = AM_RELATIVE; break;
+    case 0x70: STR_APPEND(str_rep, "%s", "BVS"); ins.bytes = 2; ins.inst = INS_BVS; ins.am = AM_RELATIVE; break;
+    case 0x90: STR_APPEND(str_rep, "%s", "BCC"); ins.bytes = 2; ins.inst = INS_BCC; ins.am = AM_RELATIVE; break;
+    case 0xB0: STR_APPEND(str_rep, "%s", "BCS"); ins.bytes = 2; ins.inst = INS_BCS; ins.am = AM_RELATIVE; break;
+    case 0xD0: STR_APPEND(str_rep, "%s", "BNE"); ins.bytes = 2; ins.inst = INS_BNE; ins.am = AM_RELATIVE; break;
+    case 0xF0: STR_APPEND(str_rep, "%s", "BEQ"); ins.bytes = 2; ins.inst = INS_BEQ; ins.am = AM_RELATIVE; break;
 
     case 0x00: STR_APPEND(str_rep, "%s", "BRK"); ins.bytes = 1; ins.inst = INS_BRK; ins.am = AM_IMPLIED; break;
     case 0x40: STR_APPEND(str_rep, "%s", "RTI"); ins.bytes = 1; ins.inst = INS_RTI; ins.am = AM_IMPLIED; break;
@@ -465,12 +489,12 @@ instruction_t cpu_get_instruction(int index, const cpu_t* cpu) {
       default: break;
     }
     switch (bbb) {
-      case 0b00000000: STR_APPEND(str_rep, "($%02X, X)"  , cpu->memory[index + 1]);                           ins.bytes += 1; ins.am = AM_UNKNOWN; break; // (zeropage, X)
+      case 0b00000000: STR_APPEND(str_rep, "($%02X, X)"  , cpu->memory[index + 1]);                           ins.bytes += 1; ins.am = AM_IND_X; break; // (indirect, X)
       case 0b00000001: STR_APPEND(str_rep, "$%02X"       , cpu->memory[index + 1]);                           ins.bytes += 1; ins.am = AM_ZP; break; // zeropage
       case 0b00000010: STR_APPEND(str_rep, "#$%02X"      , cpu->memory[index + 1]);                           ins.bytes += 1; ins.am = AM_IMMEDIATE; break; // #immediate
       case 0b00000011: STR_APPEND(str_rep, "$%02X%02X"   , cpu->memory[index + 2], cpu->memory[index + 1]);   ins.bytes += 2; ins.am = AM_ABS; break; // absolute
-      case 0b00000100: STR_APPEND(str_rep, "($%02X), Y"  , cpu->memory[index + 1]);                           ins.bytes += 2; ins.am = AM_ZP_Y; break; // (zeropage, Y)
-      case 0b00000101: STR_APPEND(str_rep, "$%02X, X"    , cpu->memory[index + 1]);                           ins.bytes += 1; ins.am = AM_ZP_X; break; // indirect, X
+      case 0b00000100: STR_APPEND(str_rep, "($%02X), Y"  , cpu->memory[index + 1]);                           ins.bytes += 1; ins.am = AM_IND_Y; break; // (indirect, Y)
+      case 0b00000101: STR_APPEND(str_rep, "$%02X, X"    , cpu->memory[index + 1]);                           ins.bytes += 1; ins.am = AM_ZP_X; break; // zeropage, X
       case 0b00000110: STR_APPEND(str_rep, "$%02X%02X, Y", cpu->memory[index + 2], cpu->memory[index + 1]);   ins.bytes += 2; ins.am = AM_ABS_Y; break; // absolute, Y
       case 0b00000111: STR_APPEND(str_rep, "$%02X%02X, X", cpu->memory[index + 2], cpu->memory[index + 1]);   ins.bytes += 2; ins.am = AM_ABS_X; break; // absolute, X
       

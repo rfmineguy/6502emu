@@ -7,6 +7,7 @@ extern "C" {
 
 #include <stdint.h>
 
+// status_flags_e;
 typedef enum {
   CPU_STATUS_FLAGS_NEGATIVE          = 0b10000000,
   CPU_STATUS_FLAGS_OVERFLOW          = 0b01000000,
@@ -140,6 +141,7 @@ typedef enum {
 typedef enum {
   SF_NEGATIVE = 0b10000000,
   SF_OVERFLOW = 0b01000000,
+  SF_BRK_CMD  = 0b00100000,
   SF_DECIMAL  = 0b00001000,
   SF_INTDISA  = 0b00000100,
   SF_ZERO     = 0b00000010,
@@ -192,6 +194,12 @@ instruction_t cpu_step(cpu_t*);
 
 uint8_t       cpu_get_byte(cpu_t*, uint16_t);
 uint16_t      cpu_get_word(cpu_t*, uint16_t);
+void          cpu_stack_push_8(cpu_t*, uint8_t);
+void          cpu_stack_push_16(cpu_t*, uint16_t);
+
+instruction_t cpu_get_instruction(int, const cpu_t*);
+int           cpu_is_instruction_in_range(instruction_t, int, int);
+void          cpu_dump_regs(const cpu_t*);
 
 uint8_t       cpu_fetch(cpu_t*);
 void          cpu_execute(cpu_t*, instruction_t);
@@ -200,8 +208,6 @@ void          cpu_adc(cpu_t*, instruction_t);
 void          cpu_and(cpu_t*, instruction_t);
 void          cpu_asl(cpu_t*, instruction_t);
 
-void          cpu_bcc(cpu_t*, instruction_t);
-void          cpu_bcs(cpu_t*, instruction_t);
 void          cpu_beq(cpu_t*, instruction_t);
 void          cpu_bit(cpu_t*, instruction_t);
 void          cpu_bmi(cpu_t*, instruction_t);
@@ -226,11 +232,6 @@ void          cpu_stx(cpu_t*, instruction_t);
 void          cpu_sty(cpu_t*, instruction_t);
 
 void          cpu_ora(cpu_t*, instruction_t);
-
-// https://llx.com/Neil/a2/opcodes.html
-instruction_t cpu_get_instruction(int, const cpu_t*);
-
-int           cpu_is_instruction_in_range(instruction_t, int, int);
 
 #ifdef __cplusplus
 }
