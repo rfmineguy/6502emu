@@ -57,7 +57,7 @@ MunitResult cpy_abs  (const MunitParameter params[], void* fixture) {
   cpu.regY = 0x80;
   cpu_execute(&cpu, ins);
 
-  munit_assert_int(cpu.status_flags & SF_CARRY,    ==, 1);
+  munit_assert_int(cpu.status_flags & SF_CARRY,    ==, SF_CARRY);
   munit_assert_int(cpu.status_flags & SF_ZERO,     ==, 0);
   munit_assert_int(cpu.status_flags & SF_NEGATIVE, ==, 0);
 

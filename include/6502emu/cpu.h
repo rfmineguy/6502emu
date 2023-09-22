@@ -207,6 +207,7 @@ void          cpu_execute(cpu_t*, instruction_t);
 void          cpu_adc(cpu_t*, instruction_t);
 void          cpu_and(cpu_t*, instruction_t);
 void          cpu_asl(cpu_t*, instruction_t);
+void          cpu_eor(cpu_t*, instruction_t);
 
 void          cpu_beq(cpu_t*, instruction_t);
 void          cpu_bit(cpu_t*, instruction_t);

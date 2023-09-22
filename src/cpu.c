@@ -129,7 +129,7 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
                 cpu->regY == 0         ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
                 cpu->regY & 0b10000000 ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
                 break; // INS_DEY
-  case INS_EOR: assert(0 && "Not implemented"); break;
+  case INS_EOR: cpu_eor(cpu, ins); break;
   case INS_INC: cpu_inc_mem(cpu, ins); break;
   case INS_INX: cpu->regX++;
                 cpu->regX == 0 ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
@@ -169,6 +169,23 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_TXS: assert(0 && "Not implemented"); break;
   case INS_TYA: assert(0 && "Not implemented"); break;
   }
+}
+
+void cpu_eor(cpu_t* cpu, instruction_t ins) {
+  switch (ins.am) {
+    case AM_IMMEDIATE: cpu->regA ^= (uint8_t)ins.raw[1]; break;
+    case AM_ZP:        cpu->regA ^= cpu->memory[(uint16_t)((uint8_t)ins.raw[1]            )]; break;
+    case AM_ZP_X:      cpu->regA ^= cpu->memory[(uint16_t)((uint8_t)ins.raw[1] + cpu->regX)]; break;
+    case AM_ABS:       cpu->regA ^= cpu->memory[(uint16_t)ins.raw[1]                       ]; break;
+    case AM_ABS_X:     cpu->regA ^= cpu->memory[(uint16_t)(ins.raw[1]          + cpu->regX)]; break;
+    case AM_ABS_Y:     cpu->regA ^= cpu->memory[(uint16_t)(ins.raw[1]          + cpu->regY)]; break;
+    case AM_IND_X:     cpu->regA ^= cpu->memory[(cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX]) % 0xff]; break;
+    case AM_IND_Y:     cpu->regA ^= cpu->memory[(cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regY]) % 0xff]; break;
+    default:           assert(0 && "Fatal default"); break;
+  }
+  (cpu->regA & 0b10000000)               ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
+  (cpu->regA & 0b01000000)               ? (cpu->status_flags |= SF_OVERFLOW) : (cpu->status_flags &= ~(SF_OVERFLOW));
+  cpu->regA == 0                         ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
 }
 
 void cpu_bit(cpu_t* cpu, instruction_t ins) {
