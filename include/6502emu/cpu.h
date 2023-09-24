@@ -174,7 +174,7 @@ typedef struct {
 
 //cpu_t
 typedef struct {
-  uint8_t  memory[0xffff];
+  uint8_t  memory[0x10000];
   uint8_t  status_flags;
   uint8_t  regA, regX, regY;
   uint8_t  sp;
@@ -221,6 +221,8 @@ void          cpu_bpl(cpu_t*, instruction_t);
 void          cpu_brk(cpu_t*, instruction_t);
 void          cpu_bvc(cpu_t*, instruction_t);
 void          cpu_bvs(cpu_t*, instruction_t);
+
+void          cpu_jsr(cpu_t*, instruction_t);
 
 void          cpu_jmp(cpu_t*, instruction_t);
 

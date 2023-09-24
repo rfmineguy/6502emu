@@ -140,7 +140,7 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
                 cpu->regY  < 0 ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
                 break; // INS_INY
   case INS_JMP: cpu_jmp(cpu, ins); break;
-  case INS_JSR: assert(0 && "Not implemented"); break;
+  case INS_JSR: cpu_jsr(cpu, ins); break;
   case INS_LDA: cpu_lda(cpu, ins); break;
   case INS_LDX: cpu_ldx(cpu, ins); break;
   case INS_LDY: cpu_ldy(cpu, ins); break;
@@ -280,6 +280,14 @@ void cpu_lsr(cpu_t* cpu, instruction_t ins) {
   *v >>= 1;
   (*v == 0)           ? (cpu->status_flags |= SF_ZERO) : (cpu->status_flags &= ~(SF_ZERO));
   ((*v) & 0b10000000) ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
+}
+
+void cpu_jsr(cpu_t* cpu, instruction_t ins) {
+  switch (ins.am) {
+    case AM_ABS:    cpu->memory[CPU_STACK_BASE + (cpu->sp-=2)] = cpu->pc - 1;
+                    cpu->pc = *(uint16_t*)(ins.raw + 1);
+                    break;
+  }
 }
 
 void cpu_jmp(cpu_t* cpu, instruction_t ins) {
