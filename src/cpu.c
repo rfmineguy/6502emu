@@ -147,10 +147,10 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_LSR: cpu_lsr(cpu, ins); break;
   case INS_NOP: /* nothing TODO: enter cycle count */ break;
   case INS_ORA: cpu_ora(cpu, ins); break;
-  case INS_PHA: assert(0 && "Not implemented"); break;
-  case INS_PHP: assert(0 && "Not implemented"); break;
-  case INS_PLA: assert(0 && "Not implemented"); break;
-  case INS_PLP: assert(0 && "Not implemented"); break;
+  case INS_PHA: cpu->memory[CPU_STACK_BASE + cpu->sp--] = cpu->regA;                               break;
+  case INS_PHP: cpu->memory[CPU_STACK_BASE + cpu->sp--] = cpu->status_flags;                       break;
+  case INS_PLA: cpu->regA                               = cpu->memory[CPU_STACK_BASE + ++cpu->sp]; break;
+  case INS_PLP: cpu->status_flags                       = cpu->memory[CPU_STACK_BASE + ++cpu->sp]; break;
   case INS_ROL: assert(0 && "Not implemented"); break;
   case INS_ROR: assert(0 && "Not implemented"); break;
   case INS_RTI: assert(0 && "Not implemented"); break;

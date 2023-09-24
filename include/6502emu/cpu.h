@@ -6,6 +6,8 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#define CPU_STACK_BASE 0x100
+#define CPU_STACK_SIZE 0xFF
 
 // status_flags_e;
 typedef enum {
