@@ -533,16 +533,27 @@ instruction_t cpu_get_instruction(int index, const cpu_t* cpu) {
 
       default: break;
     }
-    switch (bbb) {
-      case 0b00000000: STR_APPEND(str_rep, "#$%02X"      , cpu->memory[index + 1]);                         ins.bytes += 1; ins.am = AM_IMMEDIATE;  break; // #immediate
-      case 0b00000001: STR_APPEND(str_rep, "$%02X"       , cpu->memory[index + 1]);                         ins.bytes += 1; ins.am = AM_ZP;         break; // zeropage
-      case 0b00000010: STR_APPEND(str_rep, "");                                                             ins.bytes += 0; ins.am = AM_IMPLIED;    break; // accumulator
-      case 0b00000011: STR_APPEND(str_rep, "$%02X%02X"   , cpu->memory[index + 2], cpu->memory[index + 1]); ins.bytes += 2; ins.am = AM_ABS;  break; // absolute
-      case 0b00000101: STR_APPEND(str_rep, "$%02X, X"    , cpu->memory[index + 1]);                         ins.bytes += 1; ins.am = AM_ZP_X;  break; // zeropage, X
-      case 0b00000111: STR_APPEND(str_rep, "$%02X%02X, X", cpu->memory[index + 2], cpu->memory[index + 1]); ins.bytes += 2; ins.am = AM_ABS_X; break; // absolute, X
-      
-      default: break;
-    };
+    if (aaa == 0b00000100) { // STX
+      if (bbb == 0b00000101) {
+        STR_APPEND(str_rep, "$%02X, Y", cpu->memory[index + 1]); ins.bytes += 1; ins.am = AM_ZP_Y;
+      }
+    }
+    else if (aaa == 0b00000101) { //LDX
+      if (bbb == 0b00000101) {
+        STR_APPEND(str_rep, "$%02X, Y", cpu->memory[index + 1]); ins.bytes += 1; ins.am = AM_ZP_Y;
+      }
+    }
+    else {
+      switch (bbb) {
+        case 0b00000000: STR_APPEND(str_rep, "#$%02X"      , cpu->memory[index + 1]);                         ins.bytes += 1; ins.am = AM_IMMEDIATE;  break; // #immediate
+        case 0b00000001: STR_APPEND(str_rep, "$%02X"       , cpu->memory[index + 1]);                         ins.bytes += 1; ins.am = AM_ZP;         break; // zeropage
+        case 0b00000010: STR_APPEND(str_rep, "");                                                             ins.bytes += 0; ins.am = AM_IMPLIED;    break; // accumulator
+        case 0b00000011: STR_APPEND(str_rep, "$%02X%02X"   , cpu->memory[index + 2], cpu->memory[index + 1]); ins.bytes += 2; ins.am = AM_ABS;  break; // absolute
+        case 0b00000101: STR_APPEND(str_rep, "$%02X, X"    , cpu->memory[index + 1]);                         ins.bytes += 1; ins.am = AM_ZP_X;  break; // zeropage, X
+        case 0b00000111: STR_APPEND(str_rep, "$%02X%02X, X", cpu->memory[index + 2], cpu->memory[index + 1]); ins.bytes += 2; ins.am = AM_ABS_X; break; // absolute, X
+        default: break;
+      }
+    }
     // we found the translation
   }
   ins.valid = ins.bytes > 0;
