@@ -346,7 +346,7 @@ void cpu_ldx(cpu_t* cpu, instruction_t ins) {
     case AM_ZP:        cpu->regX = cpu->memory[(uint16_t)(ins.raw[1])];             break;
     case AM_ZP_Y:      cpu->regX = cpu->memory[(uint16_t)(ins.raw[1] + cpu->regY)]; break;
     case AM_ABS:       cpu->regX = cpu->memory[(uint16_t)ins.raw[1]];               break;
-    case AM_ABS_Y:     cpu->regX = cpu->memory[(uint16_t)(ins.raw[1] + cpu->regY)]; break;
+    case AM_ABS_Y:     cpu->regX = cpu->memory[(uint16_t)ins.raw[1] + cpu->regY];   break;
     default:           assert(0 && "Fatal default");
   }
   (cpu->regX == 0)          ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
@@ -533,15 +533,21 @@ instruction_t cpu_get_instruction(int index, const cpu_t* cpu) {
 
       default: break;
     }
-    if (aaa == 0b00000100) { // STX
-      if (bbb == 0b00000101) {
-        STR_APPEND(str_rep, "$%02X, Y", cpu->memory[index + 1]); ins.bytes += 1; ins.am = AM_ZP_Y;
-      }
+    if (aaa == 0b00000100      && bbb == 0b00000101) { // STX  ZP
+      STR_APPEND(str_rep, "$%02X, Y", cpu->memory[index + 1]); ins.bytes += 1; ins.am = AM_ZP_Y;
+      ins.bytes += 1;
     }
-    else if (aaa == 0b00000101) { //LDX
-      if (bbb == 0b00000101) {
-        STR_APPEND(str_rep, "$%02X, Y", cpu->memory[index + 1]); ins.bytes += 1; ins.am = AM_ZP_Y;
-      }
+    else if (aaa == 0b00000101 && bbb == 0b00000101) { // LDX  ZP
+      STR_APPEND(str_rep, "$%02X, Y", cpu->memory[index + 1]); ins.bytes += 1; ins.am = AM_ZP_Y;
+      ins.bytes += 1;
+    }
+    else if (aaa == 0b00000100      && bbb == 0b00000111) { // STX  ABS
+      STR_APPEND(str_rep, "$%02X%02X, Y", cpu->memory[index + 2], cpu->memory[index + 1]); ins.am = AM_ABS_Y;
+      ins.bytes += 1;
+    }
+    else if (aaa == 0b00000101      && bbb == 0b00000111) { // LDX  ABS
+      STR_APPEND(str_rep, "$%02X%02X, Y", cpu->memory[index + 2], cpu->memory[index + 1]); ins.am = AM_ABS_Y;
+      ins.bytes += 1;
     }
     else {
       switch (bbb) {
