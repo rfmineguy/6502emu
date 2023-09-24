@@ -12,10 +12,6 @@ booger:
   sta $3243
 loop:
   lda #43
-  lda #43
-  lda #43
-  lda #43
-  lda #43
   jmp loop
   bcc loop
 

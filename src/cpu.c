@@ -267,10 +267,9 @@ void cpu_asl(cpu_t* cpu, instruction_t ins) {
 }
 
 void cpu_jmp(cpu_t* cpu, instruction_t ins) {
-  printf("jmp addr = " PRIu16 "\n", (uint16_t) ins.raw[1]);
   switch (ins.am) {
-    case AM_ABS:     cpu->pc = (uint16_t) ins.raw[1]; break;
-    case AM_IND:     cpu->pc = (uint16_t) cpu->memory[(uint16_t)ins.raw[1]]; break;  // NOTE: There is a catch here. Look into it.
+    case AM_ABS:     cpu->pc = *(uint16_t*)(ins.raw + 1); break;
+    case AM_IND:     cpu->pc = cpu->memory[*(uint16_t*)(ins.raw + 1)]; break;  // NOTE: There is a catch here. Look into it.
   }
 }
 
@@ -319,7 +318,7 @@ void cpu_inc_mem(cpu_t* cpu, instruction_t ins) {
     case AM_ABS_X: value_ptr = &cpu->memory[(uint16_t)((uint8_t)ins.raw[1] + cpu->regX)]; break;
     default:           assert(0 && "Fatal default");
   }
-  (*value_ptr) --;
+  (*value_ptr) ++;
   (*value_ptr == 0)         ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
   (*value_ptr & 0b10000000) ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
 }
@@ -333,8 +332,8 @@ void cpu_lda(cpu_t* cpu, instruction_t ins) {
     case AM_ABS:       cpu->regA = cpu->memory[(uint16_t)ins.raw[1]];               break;
     case AM_ABS_X:     cpu->regA = cpu->memory[(uint16_t)(ins.raw[1] + cpu->regX)]; break;
     case AM_ABS_Y:     cpu->regA = cpu->memory[(uint16_t)(ins.raw[1] + cpu->regY)]; break;
-    case AM_IND_X:     assert(0 && "LDA (indirect, X) not implemented");            break;
-    case AM_IND_Y:     assert(0 && "LDA (indirect, Y) not implemented");            break;
+    case AM_IND_X:     cpu->regA = cpu->memory[(uint16_t)((cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX])) % 0xff]; break;
+    case AM_IND_Y:     cpu->regA = cpu->memory[(uint16_t)((cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regY])) % 0xff]; break;
     default:           assert(0 && "Fatal default");
   }
   (cpu->regA == 0)          ? (cpu->status_flags |= SF_ZERO    ) : (cpu->status_flags &= ~(SF_ZERO));
@@ -428,9 +427,11 @@ instruction_t cpu_get_instruction(int index, const cpu_t* cpu) {
   ins.str[0]    = 0;
   char* str_rep = ins.str;
   switch (byte) {
-    case 0x0A: STR_APPEND(str_rep, "%s", "ASL A"); ins.bytes = 1; ins.inst = INS_ASL; ins.am = AM_ACCUMULATOR; break;
+    case 0x20: STR_APPEND(str_rep, "%s", "JSR");
+               STR_APPEND(str_rep, " $%02X%02X", cpu->memory[index + 2], cpu->memory[index + 1]);
+               ins.bytes = 3; ins.inst = INS_JSR; ins.am = AM_ABS; break;
 
-    case 0x20: STR_APPEND(str_rep, "%s", "JSR"); ins.bytes = 3; ins.inst = INS_JSR; ins.am = AM_ABS; break;
+    case 0x0A: STR_APPEND(str_rep, "%s", "ASL A"); ins.bytes = 1; ins.inst = INS_ASL; ins.am = AM_ACCUMULATOR; break;
 
     case 0x10: STR_APPEND(str_rep, "%s", "BPL"); ins.bytes = 2; ins.inst = INS_BPL; ins.am = AM_RELATIVE; break;
     case 0x30: STR_APPEND(str_rep, "%s", "BMI"); ins.bytes = 2; ins.inst = INS_BMI; ins.am = AM_RELATIVE; break;

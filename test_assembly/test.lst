@@ -16,14 +16,10 @@ Current file: test.s
 00000Br 1  8D 43 32       sta $3243
 00000Er 1               loop:
 00000Er 1  A9 2B          lda #43
-000010r 1  A9 2B          lda #43
-000012r 1  A9 2B          lda #43
-000014r 1  A9 2B          lda #43
-000016r 1  A9 2B          lda #43
-000018r 1  4C rr rr       jmp loop
-00001Br 1  90 F1          bcc loop
-00001Dr 1               
-00001Dr 1               .segment "VECTORS"
+000010r 1  4C rr rr       jmp loop
+000013r 1  90 F9          bcc loop
+000015r 1               
+000015r 1               .segment "VECTORS"
 000000r 1  00 00        .word $0000         ;nmi?
 000002r 1  rr rr        .word vec_reset     ;reset vector
 000004r 1  00 00        .word $0000         ;irq?
