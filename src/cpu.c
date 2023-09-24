@@ -144,7 +144,7 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_LDA: cpu_lda(cpu, ins); break;
   case INS_LDX: cpu_ldx(cpu, ins); break;
   case INS_LDY: cpu_ldy(cpu, ins); break;
-  case INS_LSR: assert(0 && "Not implemented"); break;
+  case INS_LSR: cpu_lsr(cpu, ins); break;
   case INS_NOP: /* nothing TODO: enter cycle count */ break;
   case INS_ORA: cpu_ora(cpu, ins); break;
   case INS_PHA: assert(0 && "Not implemented"); break;
@@ -264,6 +264,21 @@ void cpu_asl(cpu_t* cpu, instruction_t ins) {
   // printf("asl ;: %2X\n", cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1))]);
   value == 0              ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
   value &  0b10000000     ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
+}
+
+void cpu_lsr(cpu_t* cpu, instruction_t ins) {
+  uint8_t* v;
+  switch (ins.am) {
+    case AM_ACCUMULATOR: v = &cpu->regA;  break;
+    case AM_ZP:          v = &cpu->memory[(uint16_t)((uint8_t)ins.raw[1])];             break;
+    case AM_ZP_X:        v = &cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX]; break;
+    case AM_ABS:         v = &cpu->memory[(uint16_t)ins.raw[1]];                        break;
+    case AM_ABS_X:       v = &cpu->memory[(uint16_t)ins.raw[1] + cpu->regX];            break;
+  }
+  cpu->status_flags |= (SF_CARRY & ((*v) & 0x1));
+  *v >>= 1;
+  (*v == 0)           ? (cpu->status_flags |= SF_ZERO) : (cpu->status_flags &= ~(SF_ZERO));
+  ((*v) & 0b10000000) ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
 }
 
 void cpu_jmp(cpu_t* cpu, instruction_t ins) {
@@ -432,6 +447,7 @@ instruction_t cpu_get_instruction(int index, const cpu_t* cpu) {
                ins.bytes = 3; ins.inst = INS_JSR; ins.am = AM_ABS; break;
 
     case 0x0A: STR_APPEND(str_rep, "%s", "ASL A"); ins.bytes = 1; ins.inst = INS_ASL; ins.am = AM_ACCUMULATOR; break;
+    case 0x4A: STR_APPEND(str_rep, "%s", "LSR A"); ins.bytes = 1; ins.inst = INS_LSR; ins.am = AM_ACCUMULATOR; break;
 
     case 0x10: STR_APPEND(str_rep, "%s", "BPL"); ins.bytes = 2; ins.inst = INS_BPL; ins.am = AM_RELATIVE; break;
     case 0x30: STR_APPEND(str_rep, "%s", "BMI"); ins.bytes = 2; ins.inst = INS_BMI; ins.am = AM_RELATIVE; break;
