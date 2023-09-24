@@ -102,14 +102,14 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   switch (ins.inst) {
   case INS_ADC: cpu_adc(cpu, ins); break;
   case INS_AND: cpu_and(cpu, ins); break;
-  case INS_ASL: cpu_asl(cpu, ins); break; 
+  case INS_ASL: cpu_asl(cpu, ins); break;
   case INS_BCC: if ((cpu->status_flags & SF_CARRY) == 0)              { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
   case INS_BCS: if ((cpu->status_flags & SF_CARRY) == SF_CARRY)       { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
   case INS_BEQ: if ((cpu->status_flags & SF_ZERO) == SF_ZERO)         { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
   case INS_BMI: if ((cpu->status_flags & SF_NEGATIVE) == SF_NEGATIVE) { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
   case INS_BNE: if ((cpu->status_flags & SF_ZERO) == 0)               { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
   case INS_BPL: if ((cpu->status_flags & SF_NEGATIVE) == 0)           { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
-  case INS_BRK: assert(0 && "Not implmented"); break;
+  case INS_BRK: cpu_brk(cpu, ins); break;
   case INS_BVC: assert(0 && "Not implmented"); break;
   case INS_BVS: assert(0 && "Not implmented"); break;
   case INS_BIT: cpu_bit(cpu, ins); break;
@@ -323,6 +323,17 @@ void cpu_dec_mem(cpu_t* cpu, instruction_t ins) {
   (*value_ptr) --;
   (*value_ptr == 0)         ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
   (*value_ptr & 0b10000000) ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
+}
+
+void cpu_brk(cpu_t* cpu, instruction_t ins) {
+  switch (ins.am) {
+    case AM_IMPLIED: // generate inerrupt
+      cpu->memory[CPU_STACK_BASE + cpu->sp--] = cpu->pc;           // push program counter
+      cpu->memory[CPU_STACK_BASE + cpu->sp--] = cpu->status_flags; // push status flags
+      cpu->pc = *(uint16_t*)(cpu->memory + 0xfffe);
+      cpu->status_flags |= SF_BRK_CMD;
+      break;
+  }
 }
 
 void cpu_inc_mem(cpu_t* cpu, instruction_t ins) {
