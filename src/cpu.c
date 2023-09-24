@@ -169,6 +169,7 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_TXS: assert(0 && "Not implemented"); break;
   case INS_TYA: assert(0 && "Not implemented"); break;
   }
+  // cpu->pc += ins.bytes; // increment program counter
 }
 
 void cpu_eor(cpu_t* cpu, instruction_t ins) {
@@ -388,8 +389,8 @@ void cpu_sta(cpu_t* cpu, instruction_t ins) {
     case AM_ABS:   cpu->memory[(uint16_t)ins.raw[1]]                          = cpu->regA; break;
     case AM_ABS_X: cpu->memory[(uint16_t)(ins.raw[1] + cpu->regX)]            = cpu->regA; break;
     case AM_ABS_Y: cpu->memory[(uint16_t)((uint8_t)(ins.raw[1]))]             = cpu->regA; break;
-    case AM_IND_X: assert(0 && "STA (indirect, X) not implemented");                       break;
-    case AM_IND_Y: assert(0 && "STA (indirect, Y) not implemented");                       break;
+    case AM_IND_X: cpu->memory[(uint16_t)((cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX])) % 0xff] = cpu->regA; break;
+    case AM_IND_Y: cpu->memory[(uint16_t)((cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regY])) % 0xff] = cpu->regA; break;
     default:           assert(0 && "Fatal default");
   }
 }
@@ -419,9 +420,9 @@ void cpu_ora(cpu_t* cpu, instruction_t ins) {
     case AM_ZP_X:       cpu->regA |= cpu->memory[(uint16_t)((uint8_t)(ins.raw[1] + cpu->regX))]; break;
     case AM_ABS:        cpu->regA |= cpu->memory[(uint16_t)ins.raw[1]];                          break;
     case AM_ABS_X:      cpu->regA |= cpu->memory[(uint16_t)(ins.raw[1] + cpu->regX)];            break;
-    case AM_ABS_Y:      cpu->regA |= cpu->memory[(uint16_t)((uint8_t)(ins.raw[1]))];             break;
-    case AM_IND_X:      assert(0 && "STA (indirect, X) not implemented");                       break;
-    case AM_IND_Y:      assert(0 && "STA (indirect, Y) not implemented");                       break;
+    case AM_ABS_Y:      cpu->regA |= cpu->memory[(uint16_t)(ins.raw[1] + cpu->regY)];            break;
+    case AM_IND_X:      cpu->regA |= cpu->memory[(uint16_t)((cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX])) % 0xff]; break;
+    case AM_IND_Y:      cpu->regA |= cpu->memory[(uint16_t)((cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regY])) % 0xff]; break;
   }
 }
 
