@@ -212,6 +212,8 @@ void          cpu_asl(cpu_t*, instruction_t);
 void          cpu_eor(cpu_t*, instruction_t);
 
 void          cpu_lsr(cpu_t*, instruction_t);
+void          cpu_rol(cpu_t*, instruction_t);
+void          cpu_ror(cpu_t*, instruction_t);
 
 void          cpu_beq(cpu_t*, instruction_t);
 void          cpu_bit(cpu_t*, instruction_t);

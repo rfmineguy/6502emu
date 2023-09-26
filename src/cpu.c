@@ -151,8 +151,8 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_PHP: cpu->memory[CPU_STACK_BASE + cpu->sp--] = cpu->status_flags;                       break;
   case INS_PLA: cpu->regA                               = cpu->memory[CPU_STACK_BASE + ++cpu->sp]; break;
   case INS_PLP: cpu->status_flags                       = cpu->memory[CPU_STACK_BASE + ++cpu->sp]; break;
-  case INS_ROL: assert(0 && "Not implemented"); break;
-  case INS_ROR: assert(0 && "Not implemented"); break;
+  case INS_ROL: cpu_rol(cpu, ins); break;
+  case INS_ROR: cpu_ror(cpu, ins); break;
   case INS_RTI: assert(0 && "Not implemented"); break;
   case INS_RTS: assert(0 && "Not implemented"); break;
   case INS_SBC: assert(0 && "Not implemented"); break;
@@ -170,6 +170,50 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_TYA: assert(0 && "Not implemented"); break;
   }
   // cpu->pc += ins.bytes; // increment program counter
+}
+
+void cpu_rol(cpu_t* cpu, instruction_t ins) {
+  uint8_t* value_ptr;
+  switch (ins.am) {
+    case AM_ACCUMULATOR: value_ptr = &cpu->regA;                                                      break;
+    case AM_ZP:          value_ptr = &cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1))];              break;
+    case AM_ZP_X:        value_ptr = &cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1) + cpu->regX)];  break;
+    case AM_ABS:         value_ptr = &cpu->memory[         (*(uint16_t*)(ins.raw + 1))];              break;
+    case AM_ABS_X:       value_ptr = &cpu->memory[         (*(uint16_t*)(ins.raw + 1) + cpu->regX)];  break;
+    default:             assert(0 && "Fatal default");
+  }
+
+  // 
+  // NOTE: Inconsistency in the documentation for the zero flag. Look into this.
+  //
+  int bit7   = (*value_ptr) & 0b10000000;
+  *value_ptr <<= 1;
+  *value_ptr = *value_ptr | (0b00000001 & (cpu->status_flags & SF_CARRY));
+
+  (*value_ptr & 0b10000000)  ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
+}
+
+void cpu_ror(cpu_t* cpu, instruction_t ins) {
+  uint8_t* value_ptr;
+  switch (ins.am) {
+    case AM_ACCUMULATOR: value_ptr = &cpu->regA;                                                      break;
+    case AM_ZP:          value_ptr = &cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1))];              break;
+    case AM_ZP_X:        value_ptr = &cpu->memory[(uint16_t)(*(uint8_t*)(ins.raw + 1) + cpu->regX)];  break;
+    case AM_ABS:         value_ptr = &cpu->memory[         (*(uint16_t*)(ins.raw + 1))];              break;
+    case AM_ABS_X:       value_ptr = &cpu->memory[         (*(uint16_t*)(ins.raw + 1) + cpu->regX)];  break;
+    default:             assert(0 && "Fatal default");
+  }
+
+  // 
+  // NOTE: Inconsistency in the documentation for the zero flag. Look into this.
+  //
+  int bit0   = (*value_ptr) & 0b00000001;
+  int bit7   = ((*value_ptr) & 0b10000000) >> 7;
+  *value_ptr >>= 1;
+  *value_ptr |= ((cpu->status_flags & SF_CARRY) << 7);
+
+  bit0 == 1                  ? (cpu->status_flags |= SF_CARRY) : (cpu->status_flags &= ~(SF_CARRY));
+  (*value_ptr & 0b10000000)  ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
 }
 
 void cpu_eor(cpu_t* cpu, instruction_t ins) {
@@ -336,6 +380,7 @@ void cpu_dec_mem(cpu_t* cpu, instruction_t ins) {
 void cpu_brk(cpu_t* cpu, instruction_t ins) {
   switch (ins.am) {
     case AM_IMPLIED: // generate inerrupt
+      // Program counter is 16 bits, so pushing the status flags next crushes the pc
       cpu->memory[CPU_STACK_BASE + cpu->sp--] = cpu->pc;           // push program counter
       cpu->memory[CPU_STACK_BASE + cpu->sp--] = cpu->status_flags; // push status flags
       cpu->pc = *(uint16_t*)(cpu->memory + 0xfffe);
@@ -467,7 +512,9 @@ instruction_t cpu_get_instruction(int index, const cpu_t* cpu) {
                ins.bytes = 3; ins.inst = INS_JSR; ins.am = AM_ABS; break;
 
     case 0x0A: STR_APPEND(str_rep, "%s", "ASL A"); ins.bytes = 1; ins.inst = INS_ASL; ins.am = AM_ACCUMULATOR; break;
+    case 0x2A: STR_APPEND(str_rep, "%s", "ROL A"); ins.bytes = 1; ins.inst = INS_ROL; ins.am = AM_ACCUMULATOR; break;
     case 0x4A: STR_APPEND(str_rep, "%s", "LSR A"); ins.bytes = 1; ins.inst = INS_LSR; ins.am = AM_ACCUMULATOR; break;
+    case 0x6A: STR_APPEND(str_rep, "%s", "ROR A"); ins.bytes = 1; ins.inst = INS_ROR; ins.am = AM_ACCUMULATOR; break;
 
     case 0x10: STR_APPEND(str_rep, "%s", "BPL"); ins.bytes = 2; ins.inst = INS_BPL; ins.am = AM_RELATIVE; break;
     case 0x30: STR_APPEND(str_rep, "%s", "BMI"); ins.bytes = 2; ins.inst = INS_BMI; ins.am = AM_RELATIVE; break;
