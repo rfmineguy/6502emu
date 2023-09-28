@@ -276,7 +276,7 @@ MunitTest transfer_tests[] = {
   { NULL, NULL,     NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL}
 };
 
-MunitSuite intermediate[] = {
+MunitSuite instructions[] = {
   {"/random", random_tests,          NULL, 1, MUNIT_SUITE_OPTION_NONE},
   {"/adc",    adc_tests,             NULL, 1, MUNIT_SUITE_OPTION_NONE},
   {"/and",    and_tests,             NULL, 1, MUNIT_SUITE_OPTION_NONE},
@@ -320,14 +320,14 @@ MunitSuite intermediate[] = {
   {NULL, NULL, NULL, 0, MUNIT_SUITE_OPTION_NONE},
 };
 
-static const MunitSuite main_suite = {
-  "6502",
+static const MunitSuite instruction_suite = {
+  "6502/instructions",
   NULL, //tests,
-  intermediate,
+  instructions,
   1,
   MUNIT_SUITE_OPTION_NONE,
 };
 
 int main(int argc, const char** argv) {
-  return munit_suite_main(&main_suite, NULL, argc, (char *const *)argv);
+  return munit_suite_main(&instruction_suite, NULL, argc, (char *const *)argv);
 }
