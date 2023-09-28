@@ -241,6 +241,9 @@ void          cpu_sta(cpu_t*, instruction_t);
 void          cpu_stx(cpu_t*, instruction_t);
 void          cpu_sty(cpu_t*, instruction_t);
 
+void          cpu_txs(cpu_t*);
+void          cpu_transfer(cpu_t*, uint8_t*, uint8_t*);
+
 void          cpu_ora(cpu_t*, instruction_t);
 
 #ifdef __cplusplus

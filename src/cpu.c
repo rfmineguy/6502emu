@@ -162,12 +162,12 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_STA: cpu_sta(cpu, ins); break;
   case INS_STX: cpu_stx(cpu, ins); break;
   case INS_STY: cpu_sty(cpu, ins); break;
-  case INS_TAX: assert(0 && "Not implemented"); break;
-  case INS_TAY: assert(0 && "Not implemented"); break;
-  case INS_TSX: assert(0 && "Not implemented"); break;
-  case INS_TXA: assert(0 && "Not implemented"); break;
-  case INS_TXS: assert(0 && "Not implemented"); break;
-  case INS_TYA: assert(0 && "Not implemented"); break;
+  case INS_TAX: cpu_transfer(cpu, &cpu->regA, &cpu->regX); break; // transfer A  to X
+  case INS_TAY: cpu_transfer(cpu, &cpu->regA, &cpu->regY); break; // transfer A  to Y
+  case INS_TSX: cpu_transfer(cpu, &cpu->sp  , &cpu->regX); break; // transfer SP to X
+  case INS_TXA: cpu_transfer(cpu, &cpu->regX, &cpu->regA); break; // transfer X  to A
+  case INS_TYA: cpu_transfer(cpu, &cpu->regY, &cpu->regA); break; // transfer Y  to A
+  case INS_TXS: cpu_txs(cpu);                              break; // transfer X  to SP
   }
   // cpu->pc += ins.bytes; // increment program counter
 }
@@ -511,6 +511,19 @@ void cpu_ora(cpu_t* cpu, instruction_t ins) {
     case AM_IND_X:      cpu->regA |= cpu->memory[(uint16_t)((cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX])) % 0xff]; break;
     case AM_IND_Y:      cpu->regA |= cpu->memory[(uint16_t)((cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regY])) % 0xff]; break;
   }
+
+  cpu->regA == 0         ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
+  cpu->regA & 0b10000000 ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
+}
+
+void cpu_txs(cpu_t* cpu) {
+  cpu->sp = cpu->regX;
+}
+
+void cpu_transfer(cpu_t* cpu, uint8_t* from, uint8_t* to) {
+  *to = *from;
+  *to == 0          ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
+  *to &  0b10000000 ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
 }
 
 // bit pattern aaabbbcc
