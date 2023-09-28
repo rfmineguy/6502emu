@@ -486,16 +486,16 @@ void cpu_stx(cpu_t* cpu, instruction_t ins) {
   switch (ins.am) {
     case AM_ZP:    cpu->memory[(uint16_t)((uint8_t)(ins.raw[1]            ))] = cpu->regX; break;
     case AM_ZP_Y:  cpu->memory[(uint16_t)((uint8_t)(ins.raw[1] + cpu->regY))] = cpu->regX; break;
-    case AM_ABS:   cpu->memory[(uint16_t)ins.raw[1]]                          = cpu->regX; break;
+    case AM_ABS:   cpu->memory[*(uint16_t*)(ins.raw + 1)]                     = cpu->regX; break;
     default:           assert(0 && "Fatal default");
   }
 }
 
 void cpu_sty(cpu_t* cpu, instruction_t ins) {
   switch (ins.am) {
-    case AM_ZP:    cpu->regY = cpu->memory[(uint16_t)((uint8_t)(ins.raw[1]            ))]; break;
-    case AM_ZP_X:  cpu->regY = cpu->memory[(uint16_t)((uint8_t)(ins.raw[1] + cpu->regX))]; break;
-    case AM_ABS:   cpu->regY = cpu->memory[(uint16_t)ins.raw[1]];                          break;
+    case AM_ZP:    cpu->memory[(uint16_t)((uint8_t)(ins.raw[1]            ))] = cpu->regY; break;
+    case AM_ZP_X:  cpu->memory[(uint16_t)((uint8_t)(ins.raw[1] + cpu->regX))] = cpu->regY; break;
+    case AM_ABS:   cpu->memory[*(uint16_t*)(ins.raw + 1)]                     = cpu->regY; break;
     default:           assert(0 && "Fatal default");
   }
 }
