@@ -109,9 +109,9 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_BMI: if ((cpu->status_flags & SF_NEGATIVE) == SF_NEGATIVE) { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
   case INS_BNE: if ((cpu->status_flags & SF_ZERO) == 0)               { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
   case INS_BPL: if ((cpu->status_flags & SF_NEGATIVE) == 0)           { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
+  case INS_BVC: if ((cpu->status_flags & SF_OVERFLOW) == 0)           { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
+  case INS_BVS: if ((cpu->status_flags & SF_OVERFLOW) == SF_OVERFLOW) { cpu->pc += (*(int8_t*)(ins.raw + 1)); } break;
   case INS_BRK: cpu_brk(cpu, ins); break;
-  case INS_BVC: assert(0 && "Not implmented"); break;
-  case INS_BVS: assert(0 && "Not implmented"); break;
   case INS_BIT: cpu_bit(cpu, ins); break;
   case INS_CLC: cpu->status_flags &= ~(SF_CARRY);          break; //clear the carry bit
   case INS_CLD: cpu->status_flags &= ~(SF_DECIMAL);        break; //clear the decimal bit

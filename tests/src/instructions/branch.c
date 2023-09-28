@@ -265,3 +265,91 @@ MunitResult bpl_rel(const MunitParameter params[], void* fixture) {
 
   return MUNIT_OK;
 }
+
+MunitResult bvc_rel(const MunitParameter params[], void* fixture) {
+  cpu_t cpu;
+
+  /* TEST #1 jump one space forward */
+  {
+  // this instruction uses signed numbers
+  cpu.memory[0x0] = 0x50;
+  cpu.memory[0x1] = 0x01; // branch 1 byte forward relative to the current pc
+  cpu.pc = 0;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+  munit_assert_int(ins.bytes, ==, 2);
+
+  /* Test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "BVC");
+
+  uint16_t prev_pc = cpu.pc;
+  cpu.status_flags &= ~(SF_OVERFLOW); // clear overflow flag
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.pc, ==, prev_pc + 1);
+  }
+
+  /* TEST #2 jump one space backward */
+  {
+  // this instruction uses signed numbers
+  cpu.memory[0x0] = 0x50;
+  cpu.memory[0x1] = 0xFF; // branch 1 byte backward relative to the current pc
+  cpu.pc = 1;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+  munit_assert_int(ins.bytes, ==, 2);
+
+  /* Test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "BVC");
+
+  uint16_t prev_pc = cpu.pc;
+  cpu.status_flags &= ~(SF_OVERFLOW); // clear negative flag
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.pc, ==, prev_pc - 1);
+  }
+
+  return MUNIT_OK;
+}
+
+MunitResult bvs_rel(const MunitParameter params[], void* fixture) {
+  cpu_t cpu;
+
+  /* TEST #1 jump one space forward */
+  {
+  // this instruction uses signed numbers
+  cpu.memory[0x0] = 0x70;
+  cpu.memory[0x1] = 0x01; // branch 1 byte forward relative to the current pc
+  cpu.pc = 0;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+  munit_assert_int(ins.bytes, ==, 2);
+
+  /* Test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "BVS");
+
+  uint16_t prev_pc = cpu.pc;
+  cpu.status_flags |= SF_OVERFLOW; // clear overflow flag
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.pc, ==, prev_pc + 1);
+  }
+
+  /* TEST #2 jump one space backward */
+  {
+  // this instruction uses signed numbers
+  cpu.memory[0x0] = 0x70;
+  cpu.memory[0x1] = 0xFF; // branch 1 byte backward relative to the current pc
+  cpu.pc = 1;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+  munit_assert_int(ins.bytes, ==, 2);
+
+  /* Test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "BVS");
+
+  uint16_t prev_pc = cpu.pc;
+  cpu.status_flags |= SF_OVERFLOW; // clear negative flag
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.pc, ==, prev_pc - 1);
+  }
+
+  return MUNIT_OK;
+}
