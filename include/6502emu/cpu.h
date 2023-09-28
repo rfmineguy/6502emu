@@ -207,6 +207,7 @@ uint8_t       cpu_fetch(cpu_t*);
 void          cpu_execute(cpu_t*, instruction_t);
 
 void          cpu_adc(cpu_t*, instruction_t);
+void          cpu_sbc(cpu_t*, instruction_t);
 void          cpu_and(cpu_t*, instruction_t);
 void          cpu_asl(cpu_t*, instruction_t);
 void          cpu_eor(cpu_t*, instruction_t);

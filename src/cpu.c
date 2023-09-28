@@ -155,7 +155,7 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_ROR: cpu_ror(cpu, ins); break;
   case INS_RTI: assert(0 && "Not implemented"); break;
   case INS_RTS: assert(0 && "Not implemented"); break;
-  case INS_SBC: assert(0 && "Not implemented"); break;
+  case INS_SBC: cpu_sbc(cpu, ins); break;
   case INS_SEC: cpu->status_flags |= SF_CARRY;   break;
   case INS_SED: cpu->status_flags |= SF_DECIMAL; break;
   case INS_SEI: cpu->status_flags |= SF_INTDISA; break;
@@ -267,6 +267,28 @@ void cpu_adc(cpu_t* cpu, instruction_t ins) {
   r == 0                         ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
   r > 0xff                       ? (cpu->status_flags |= SF_OVERFLOW) : (cpu->status_flags &= ~(SF_OVERFLOW));
   r & 0x100                      ? (cpu->status_flags |= SF_CARRY)    : (cpu->status_flags &= ~(SF_CARRY));
+}
+
+void cpu_sbc(cpu_t* cpu, instruction_t ins) {
+  uint16_t r = 0;
+  switch (ins.am) {
+    case AM_IMMEDIATE: r = cpu->regA - ins.raw[1]                                                                     - (1 - (cpu->status_flags & SF_CARRY)); break;
+    case AM_ZP:        r = cpu->regA - cpu->memory[(uint16_t)((uint8_t)ins.raw[1])]                                   - (1 - (cpu->status_flags & SF_CARRY)); break;
+    case AM_ZP_X:      r = cpu->regA - cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX]                       - (1 - (cpu->status_flags & SF_CARRY)); break;
+    case AM_ABS:       r = cpu->regA - cpu->memory[(uint16_t)ins.raw[1]                       ]                       - (1 - (cpu->status_flags & SF_CARRY)); break;
+    case AM_ABS_X:     r = cpu->regA - cpu->memory[(uint16_t)(ins.raw[1]            + cpu->regX)]                     - (1 - (cpu->status_flags & SF_CARRY)); break;
+    case AM_ABS_Y:     r = cpu->regA - cpu->memory[(uint16_t)(ins.raw[1]            + cpu->regY)]                     - (1 - (cpu->status_flags & SF_CARRY)); break;
+    case AM_IND_X:     r = cpu->regA - cpu->memory[(cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX]) % 0xff] - (1 - (cpu->status_flags & SF_CARRY)); break;
+    case AM_IND_Y:     r = cpu->regA - cpu->memory[(cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regY]) % 0xff] - (1 - (cpu->status_flags & SF_CARRY)); break;
+    default:           assert(0 && "Fatal default"); break;
+  }
+  cpu->regA = r;
+
+  // Set/Clear the appropriate status flags
+  (r & 0b10000000)               ? (cpu->status_flags |= SF_NEGATIVE) : (cpu->status_flags &= ~(SF_NEGATIVE));
+  r == 0                         ? (cpu->status_flags |= SF_ZERO)     : (cpu->status_flags &= ~(SF_ZERO));
+  r > 0xff                       ? (cpu->status_flags |= SF_OVERFLOW) : (cpu->status_flags &= ~(SF_OVERFLOW));
+  r & 0x100                      ? (cpu->status_flags &= ~(SF_CARRY)) : (cpu->status_flags |= SF_CARRY);
 }
 
 void cpu_and(cpu_t* cpu, instruction_t ins) {
@@ -450,12 +472,13 @@ void cpu_sta(cpu_t* cpu, instruction_t ins) {
   switch (ins.am) {
     case AM_ZP:    cpu->memory[(uint16_t)((uint8_t)(ins.raw[1]            ))] = cpu->regA; break;
     case AM_ZP_X:  cpu->memory[(uint16_t)((uint8_t)(ins.raw[1] + cpu->regX))] = cpu->regA; break;
-    case AM_ABS:   cpu->memory[(uint16_t)ins.raw[1]]                          = cpu->regA; break;
-    case AM_ABS_X: cpu->memory[(uint16_t)(ins.raw[1] + cpu->regX)]            = cpu->regA; break;
-    case AM_ABS_Y: cpu->memory[(uint16_t)((uint8_t)(ins.raw[1]))]             = cpu->regA; break;
-    case AM_IND_X: cpu->memory[(uint16_t)((cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regX])) % 0xff] = cpu->regA; break;
-    case AM_IND_Y: cpu->memory[(uint16_t)((cpu->memory[(uint16_t)((uint8_t)ins.raw[1]) + cpu->regY])) % 0xff] = cpu->regA; break;
-    default:           assert(0 && "Fatal default");
+    case AM_ABS:   cpu->memory[*(uint16_t*)(ins.raw + 1)]                     = cpu->regA; break;
+    case AM_ABS_X: cpu->memory[*(uint16_t*)(ins.raw + 1) + cpu->regX]         = cpu->regA; break;
+    case AM_ABS_Y: cpu->memory[*(uint16_t*)(ins.raw + 1) + cpu->regY]         = cpu->regA; break;
+    case AM_IND_X: cpu->memory[(uint16_t)cpu->memory[(uint16_t)ins.raw[1] + cpu->regX] % 0xff] = cpu->regA; break;
+    case AM_IND_Y: cpu->memory[(uint16_t)cpu->memory[(uint16_t)ins.raw[1] + cpu->regY] % 0xff] = cpu->regA;break;
+                   
+    default:       assert(0 && "Fatal default");
   }
 }
 
