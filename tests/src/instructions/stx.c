@@ -1,5 +1,56 @@
 #include "tests.h"
+#include "6502emu/cpu.h"
 
-MunitResult stx_zp   (const MunitParameter params[], void* fixture) { return MUNIT_ERROR; }
-MunitResult stx_zpy  (const MunitParameter params[], void* fixture) { return MUNIT_ERROR; }
-MunitResult stx_abs  (const MunitParameter params[], void* fixture) { return MUNIT_ERROR; }
+MunitResult stx_zp   (const MunitParameter params[], void* fixture) {
+  cpu_t cpu = {0};
+  cpu.memory[0x0] = 0x86;
+  cpu.memory[0x1] = 0x40;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+
+  /* Test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "STX $40");
+
+  cpu.regX = 0x45;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.memory[0x40], ==, 0x45);
+
+  return MUNIT_OK; 
+}
+
+MunitResult stx_zpy  (const MunitParameter params[], void* fixture) {
+  cpu_t cpu = {0};
+  cpu.memory[0x0] = 0x96;
+  cpu.memory[0x1] = 0x40;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+
+  /* Test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "STX $40, Y");
+
+  cpu.regX = 0x45;
+  cpu.regY = 1;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.memory[0x41], ==, 0x45);
+
+  return MUNIT_OK; 
+}
+
+MunitResult stx_abs  (const MunitParameter params[], void* fixture) {
+  cpu_t cpu = {0};
+  cpu.memory[0x0] = 0x8E;
+  cpu.memory[0x1] = 0x00;
+  cpu.memory[0x2] = 0x40;
+  cpu.memory[0x4000] = 0x10;
+
+  instruction_t ins = cpu_get_instruction(0x0, &cpu);
+
+  /* Test whether it was parsed as the correct instruction */
+  munit_assert_string_equal(ins.str, "STX $4000");
+
+  cpu.regX = 0x45;
+  cpu_execute(&cpu, ins);
+  munit_assert_int(cpu.memory[0x4000], ==, 0x45);
+
+  return MUNIT_OK; 
+}
