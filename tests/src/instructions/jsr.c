@@ -13,8 +13,11 @@ MunitResult jsr_abs  (const MunitParameter params[], void* fixture) {
   /* Test whether it was parsed as the correct instruction */
   munit_assert_string_equal(ins.str, "JSR $2000");
 
+  cpu.pc = 4;
+  cpu.sp = CPU_STACK_SIZE;
   cpu_execute(&cpu, ins);
   munit_assert_int(cpu.pc, ==, 0x2000);
+  munit_assert_int(cpu.memory[CPU_STACK_BASE + cpu.sp], ==, 3);
 
   return MUNIT_OK;
 }

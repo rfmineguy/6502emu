@@ -2,7 +2,6 @@
 #define TESTS_H
 #include "../munit.h"
 
-
 MunitResult bit_shift_tests(const MunitParameter[], void*);
 
 MunitResult adc_imm  (const MunitParameter[], void*);

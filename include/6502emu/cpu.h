@@ -246,6 +246,8 @@ void          cpu_transfer(cpu_t*, uint8_t*, uint8_t*);
 
 void          cpu_ora(cpu_t*, instruction_t);
 
+void          cpu_show_mem(cpu_t*, uint16_t, uint16_t);
+
 #ifdef __cplusplus
 }
 #endif

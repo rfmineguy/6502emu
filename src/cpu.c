@@ -350,7 +350,8 @@ void cpu_lsr(cpu_t* cpu, instruction_t ins) {
 
 void cpu_jsr(cpu_t* cpu, instruction_t ins) {
   switch (ins.am) {
-    case AM_ABS:    cpu->memory[CPU_STACK_BASE + (cpu->sp-=2)] = cpu->pc - 1;
+    case AM_ABS:    cpu->memory[CPU_STACK_BASE + (cpu->sp - 2)] = cpu->pc - 1;
+                    cpu->sp -= 2;
                     cpu->pc = *(uint16_t*)(ins.raw + 1);
                     break;
   }
@@ -688,4 +689,11 @@ instruction_t cpu_get_instruction(int index, const cpu_t* cpu) {
 
 int cpu_is_instruction_in_range(instruction_t ins, int lower_addr, int upper_addr) {
   return ins.address > lower_addr && ins.address < upper_addr;
+}
+
+void cpu_show_mem(cpu_t* cpu, uint16_t start, uint16_t length) {
+  for (int i = start; i < start + length; i++) {
+    printf("%02X", cpu->memory[i]);
+  }
+  printf("\n");
 }
