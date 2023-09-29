@@ -17,7 +17,7 @@ MunitResult jsr_abs  (const MunitParameter params[], void* fixture) {
   cpu.sp = CPU_STACK_SIZE;
   cpu_execute(&cpu, ins);
   munit_assert_int(cpu.pc, ==, 0x2000);
-  munit_assert_int(cpu.memory[CPU_STACK_BASE + cpu.sp], ==, 3);
+  munit_assert_int(cpu.memory[CPU_STACK_BASE + cpu.sp], ==, 4);
 
   return MUNIT_OK;
 }

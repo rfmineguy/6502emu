@@ -226,6 +226,8 @@ void          cpu_bvc(cpu_t*, instruction_t);
 void          cpu_bvs(cpu_t*, instruction_t);
 
 void          cpu_jsr(cpu_t*, instruction_t);
+void          cpu_rti(cpu_t*, instruction_t);
+void          cpu_rts(cpu_t*, instruction_t);
 
 void          cpu_jmp(cpu_t*, instruction_t);
 

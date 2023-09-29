@@ -153,8 +153,8 @@ void cpu_execute(cpu_t* cpu, instruction_t ins) {
   case INS_PLP: cpu->status_flags                       = cpu->memory[CPU_STACK_BASE + ++cpu->sp]; break;
   case INS_ROL: cpu_rol(cpu, ins); break;
   case INS_ROR: cpu_ror(cpu, ins); break;
-  case INS_RTI: assert(0 && "Not implemented"); break;
-  case INS_RTS: assert(0 && "Not implemented"); break;
+  case INS_RTI: cpu_rti(cpu, ins); break;
+  case INS_RTS: cpu_rts(cpu, ins); break;
   case INS_SBC: cpu_sbc(cpu, ins); break;
   case INS_SEC: cpu->status_flags |= SF_CARRY;   break;
   case INS_SED: cpu->status_flags |= SF_DECIMAL; break;
@@ -350,10 +350,24 @@ void cpu_lsr(cpu_t* cpu, instruction_t ins) {
 
 void cpu_jsr(cpu_t* cpu, instruction_t ins) {
   switch (ins.am) {
-    case AM_ABS:    cpu->memory[CPU_STACK_BASE + (cpu->sp - 2)] = cpu->pc - 1;
+    case AM_ABS:    cpu->memory[CPU_STACK_BASE + (cpu->sp - 2)] = cpu->pc;
                     cpu->sp -= 2;
                     cpu->pc = *(uint16_t*)(ins.raw + 1);
                     break;
+  }
+}
+
+void cpu_rti(cpu_t* cpu, instruction_t ins) {
+  switch (ins.am) {
+    case AM_IMPLIED: cpu->status_flags = cpu->memory[CPU_STACK_BASE + cpu->sp++]; 
+                     cpu->pc           = cpu->memory[CPU_STACK_BASE + cpu->sp++];
+                     break;
+  }
+}
+
+void cpu_rts(cpu_t* cpu, instruction_t ins) {
+  switch (ins.am) {
+    case AM_IMPLIED: cpu->pc = cpu->memory[CPU_STACK_BASE + (cpu->sp)] + 1; cpu->sp += 2; break;
   }
 }
 
